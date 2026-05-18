@@ -663,6 +663,10 @@
     <button class="btn secondary" onclick="showHistory()" data-i18n="game.history">Historique</button>
     <button class="btn secondary" onclick="showEndgame()" data-i18n="game.end">Fin de partie</button>
   </div>
+  <details style="margin-top: 14px; color: var(--muted); font-size: 11px;">
+    <summary style="cursor: pointer; padding: 6px 10px; background: var(--bg-card); border-radius: 6px; border: 1px solid var(--border);">▶ PvP debug log</summary>
+    <div id="pvp-debug-log" style="background:#0a0500;border:1px solid var(--border);border-radius:6px;padding:8px;font-family:var(--mono);font-size:10px;color:#6fcf6f;max-height:200px;overflow-y:auto;margin-top:6px;word-break:break-word;text-align:left;"></div>
+  </details>
 </div>
 
 <!-- ========== PvP : FIREBASE CONFIG ========== -->
@@ -2293,7 +2297,20 @@ const PvP = (() => {
   function getOppName() { return oppName; }
   function isActive() { return active; }
 
-  function dlog(s) { console.log('[PvP]', s); }
+  function dlog(s) {
+    console.log('[PvP]', s);
+    // Also append to visible debug log if it exists
+    const el = document.getElementById('pvp-debug-log');
+    if (el) {
+      const stamp = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.textContent = '[' + stamp + '] ' + s;
+      el.appendChild(div);
+      // Keep last 30 lines
+      while (el.children.length > 30) el.removeChild(el.firstChild);
+      el.scrollTop = el.scrollHeight;
+    }
+  }
 
   // Buffer messages that arrive for a future round (race conditions on round transitions)
   let futureBuffer = [];
@@ -2431,15 +2448,10 @@ const PvP = (() => {
   }
 
   async function beginRoundPvP() {
+    // Reset round state SYNCHRONOUSLY before any await — otherwise messages
+    // arriving during the await could be wiped out.
     round += 1;
     State.round = round;
-    $('round-info').textContent = t('reveal.round') + ' ' + round;
-    $('p1-board').classList.remove('winner');
-    $('p2-board').classList.remove('winner');
-
-    // Reset round state
-    mySeed = CryptoHelpers.randomSeed();
-    myCommit = await CryptoHelpers.sha256(mySeed);
     oppCommit = null;
     oppSeed = null;
     deck = null;
@@ -2448,6 +2460,18 @@ const PvP = (() => {
     mySplitCommit = null;
     oppSplitCommit = null;
     oppSplit = null;
+    mySeed = CryptoHelpers.randomSeed();
+    myCommit = null; // we'll set it after the sha256
+
+    $('round-info').textContent = t('reveal.round') + ' ' + round;
+    $('p1-board').classList.remove('winner');
+    $('p2-board').classList.remove('winner');
+
+    // Now compute the hash. Messages may arrive here, but they will be
+    // properly stored (oppCommit etc. were set to null *before* this await)
+    // so any incoming deck-commit will populate oppCommit correctly.
+    const hash = await CryptoHelpers.sha256(mySeed);
+    myCommit = hash;
 
     dlog('round ' + round + ': sending deck-commit');
     Net.send({ type: 'deck-commit', round, hash: myCommit });
@@ -2781,6 +2805,7 @@ const PvP = (() => {
   // -------- Message dispatcher --------
   function handleMessage(msg) {
     if (!msg || !msg.type) return;
+    dlog('← recv ' + msg.type + (typeof msg.round === 'number' ? ' r' + msg.round : ''));
 
     // Handshake messages are not round-scoped
     if (msg.type === 'hello') {
