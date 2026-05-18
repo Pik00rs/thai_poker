@@ -2295,6 +2295,22 @@ const PvP = (() => {
 
   function dlog(s) { console.log('[PvP]', s); }
 
+  // Buffer messages that arrive for a future round (race conditions on round transitions)
+  let futureBuffer = [];
+
+  function bufferFuture(msg) {
+    dlog('buffering future message: ' + msg.type + ' for round ' + msg.round);
+    futureBuffer.push(msg);
+  }
+
+  function flushFuture() {
+    if (futureBuffer.length === 0) return;
+    const toReplay = futureBuffer.filter(m => m.round === round);
+    futureBuffer = futureBuffer.filter(m => m.round !== round);
+    dlog('flushing ' + toReplay.length + ' buffered messages for round ' + round);
+    toReplay.forEach(m => handleMessage(m));
+  }
+
   function reset() {
     active = false;
     config = null; round = 0;
@@ -2303,6 +2319,7 @@ const PvP = (() => {
     myCash = oppCash = 0;
     history = [];
     oppName = null;
+    futureBuffer = [];
   }
 
   // -------- Handshake --------
@@ -2400,7 +2417,7 @@ const PvP = (() => {
       const btn = document.createElement('button');
       btn.className = 'btn';
       btn.textContent = t('ready.deal');
-      btn.onclick = () => { Net.send({ type: 'next-round' }); beginRoundPvP(); };
+      btn.onclick = () => { Net.send({ type: 'next-round', round: round + 1 }); beginRoundPvP(); };
       act.appendChild(btn);
     } else {
       const wait = document.createElement('div');
@@ -2436,6 +2453,9 @@ const PvP = (() => {
     Net.send({ type: 'deck-commit', round, hash: myCommit });
 
     showRoundWaiting(t('pvp.waiting.commit'));
+
+    // Replay any messages we buffered for this round (race condition recovery)
+    flushFuture();
 
     // If opponent already sent us their commit (race), tryProgress will pick it up
     tryProgressDeck();
@@ -2742,8 +2762,9 @@ const PvP = (() => {
       const btn = document.createElement('button'); btn.className = 'btn';
       btn.textContent = t('reveal.next');
       btn.onclick = () => {
-        Net.send({ type: 'next-round' });
-        showPvPReadyForRound();
+        // Send a signal with the next round number so the guest can sync quickly
+        Net.send({ type: 'next-round', round: round + 1 });
+        beginRoundPvP();
       };
       act.appendChild(btn);
     } else {
@@ -2760,52 +2781,82 @@ const PvP = (() => {
   // -------- Message dispatcher --------
   function handleMessage(msg) {
     if (!msg || !msg.type) return;
-    switch (msg.type) {
-      case 'hello':
-        if (!isHost) {
-          // Guest receives the host's hello
-          oppName = msg.name || 'Host';
-          config = msg.config;
-          dlog('guest received hello from ' + oppName);
-          Net.send({ type: 'hello-ack', name: myName });
-          onHandshakeComplete();
-        }
-        break;
-      case 'hello-ack':
-        if (isHost) {
-          oppName = msg.name || 'Guest';
-          dlog('host received hello-ack from ' + oppName);
-          onHandshakeComplete();
-        }
-        break;
-      case 'next-round':
-        if (!isHost) {
-          dlog('guest received next-round signal');
+
+    // Handshake messages are not round-scoped
+    if (msg.type === 'hello') {
+      if (!isHost) {
+        oppName = msg.name || 'Host';
+        config = msg.config;
+        dlog('guest received hello from ' + oppName);
+        Net.send({ type: 'hello-ack', name: myName });
+        onHandshakeComplete();
+      }
+      return;
+    }
+    if (msg.type === 'hello-ack') {
+      if (isHost) {
+        oppName = msg.name || 'Guest';
+        dlog('host received hello-ack from ' + oppName);
+        onHandshakeComplete();
+      }
+      return;
+    }
+    if (msg.type === 'next-round') {
+      if (!isHost) {
+        dlog('guest received next-round signal');
+        if (round < (msg.round || 0)) {
+          // host has already moved past, catch up
+          beginRoundPvP();
+        } else {
           beginRoundPvP();
         }
-        break;
+      }
+      return;
+    }
+
+    // Round-scoped messages:
+    if (typeof msg.round !== 'number') {
+      dlog('unknown message: ' + msg.type);
+      return;
+    }
+    if (msg.round < round) {
+      dlog('stale ' + msg.type + ' (round ' + msg.round + ' < ' + round + ')');
+      return;
+    }
+    if (msg.round > round) {
+      // Message from a future round — for the guest, auto-start the round if it's a deck-commit
+      if (!isHost && msg.type === 'deck-commit' && msg.round === round + 1) {
+        dlog('guest auto-starting round ' + msg.round + ' on deck-commit');
+        // Buffer this message and start the new round; flushFuture() will replay it
+        bufferFuture(msg);
+        beginRoundPvP();
+        return;
+      }
+      // Otherwise buffer and wait
+      bufferFuture(msg);
+      return;
+    }
+
+    // msg.round === round: process normally
+    switch (msg.type) {
       case 'deck-commit':
-        if (msg.round !== round) { dlog('stale deck-commit (round ' + msg.round + ' vs ' + round + ')'); return; }
         oppCommit = msg.hash;
         tryProgressDeck();
         break;
       case 'deck-seed':
-        if (msg.round !== round) { dlog('stale deck-seed'); return; }
         oppSeed = msg.seed;
         tryProgressDeck();
         break;
       case 'split-commit':
-        if (msg.round !== round) { dlog('stale split-commit'); return; }
         oppSplitCommit = msg.hash;
         tryProgressSplit();
         break;
       case 'split':
-        if (msg.round !== round) { dlog('stale split'); return; }
         oppSplit = msg.split;
         tryProgressSplit();
         break;
       default:
-        dlog('unknown message type: ' + msg.type);
+        dlog('unknown round message type: ' + msg.type);
     }
   }
 
