@@ -9,7 +9,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@500;700&family=Noto+Serif+Thai:wght@500;700&family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -420,7 +419,6 @@
   }
   html[lang="th"] .pvp-role-badge, html[lang="zh"] .pvp-role-badge { font-family: inherit; letter-spacing: 1px; font-size: 13px; }
 
-  /* CODE DISPLAY (big code shown to host) */
   .code-display {
     background: linear-gradient(180deg, var(--bg-soft), var(--bg-card));
     border: 2px solid var(--gold);
@@ -431,8 +429,7 @@
     position: relative;
   }
   .code-display::before, .code-display::after {
-    content: '◆';
-    position: absolute; top: 8px; color: var(--gold); font-size: 12px;
+    content: '◆'; position: absolute; top: 8px; color: var(--gold); font-size: 12px;
   }
   .code-display::before { left: 14px; }
   .code-display::after { right: 14px; }
@@ -455,7 +452,6 @@
     color: var(--cream-soft); font-size: 13px;
   }
 
-  /* CODE INPUT (guest) */
   .code-input-box {
     background: var(--bg-deep);
     border: 2px solid var(--border-strong);
@@ -465,15 +461,12 @@
     max-width: 320px;
   }
   .code-input-box input {
-    background: transparent;
-    border: none;
+    background: transparent; border: none;
     border-bottom: 2px solid var(--gold-deep);
     width: 100%; text-align: center;
     color: var(--gold-bright);
-    font-family: var(--mono);
-    font-size: 32px; font-weight: 700;
-    letter-spacing: 8px;
-    padding: 8px 0;
+    font-family: var(--mono); font-size: 32px; font-weight: 700;
+    letter-spacing: 8px; padding: 8px 0;
     text-transform: uppercase;
   }
   .code-input-box input:focus { outline: none; border-bottom-color: var(--gold); }
@@ -509,25 +502,25 @@
   }
   .copy-btn.copied { background: var(--gold); color: var(--bg-deep); }
 
-  .debug-log {
-    background: #0a0500; border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px;
-    font-family: var(--mono); font-size: 11px;
-    color: #6fcf6f; text-align: left;
-    max-height: 180px; overflow-y: auto;
-    margin-top: 14px; line-height: 1.4;
-    word-break: break-word;
+  .config-help-box {
+    background: rgba(212,160,86,0.06);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: var(--cream-soft);
+    line-height: 1.5;
+    text-align: left;
   }
-  .debug-log .debug-title {
-    color: var(--gold); font-family: var(--display);
-    font-size: 10px; letter-spacing: 1.5px;
-    margin-bottom: 6px; opacity: .7;
+  .config-help-box ol { padding-left: 20px; margin: 6px 0; }
+  .config-help-box li { margin: 4px 0; }
+  .config-help-box a { color: var(--gold-bright); text-decoration: underline; }
+  .config-help-box code {
+    font-family: var(--mono); background: var(--bg-deep);
+    padding: 1px 6px; border-radius: 3px; font-size: 12px;
+    color: var(--gold-bright);
   }
-  .debug-log .line {
-    padding: 1px 0;
-  }
-  .debug-log .line.err { color: #ff6b6b; }
-  .debug-log .line.warn { color: #ffb86b; }
 </style>
 </head>
 <body>
@@ -672,6 +665,42 @@
   </div>
 </div>
 
+<!-- ========== PvP : FIREBASE CONFIG ========== -->
+<div id="screen-pvp-config" class="screen">
+  <div class="header">
+    <div class="ornament">🔥</div>
+    <h1 data-i18n="pvp.config.title">Configuration Firebase</h1>
+  </div>
+
+  <div class="panel">
+    <div class="config-help-box">
+      <strong style="color:var(--gold)">Setup (5 min, gratuit) :</strong>
+      <ol>
+        <li>Va sur <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a></li>
+        <li>Clique "Add project" → donne un nom → continue (désactive Analytics)</li>
+        <li>Dans le menu de gauche : "Build → Realtime Database"</li>
+        <li>Clique "Create Database" → choisis une région → mode "test" (lecture/écriture publique)</li>
+        <li>Va dans ⚙️ "Project settings" → "Your apps" → icône <code>&lt;/&gt;</code> (web)</li>
+        <li>Donne un surnom à l'app, ignore "Hosting" → "Register"</li>
+        <li>Copie <code>apiKey</code> et <code>databaseURL</code> ci-dessous</li>
+      </ol>
+    </div>
+
+    <div class="field-stack">
+      <label data-i18n="pvp.config.url">URL de la base</label>
+      <input id="fb-url" type="text" class="wide" placeholder="https://xxx-default-rtdb.firebaseio.com" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div class="field-stack">
+      <label data-i18n="pvp.config.key">Clé API</label>
+      <input id="fb-key" type="text" class="wide" placeholder="AIzaSy..." autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div id="fb-config-status" class="connection-status" style="margin: 10px auto; display:block; width: fit-content"></div>
+
+    <button class="btn" onclick="pvpSaveConfig()" data-i18n="pvp.config.save">Continuer</button>
+    <button class="btn secondary" onclick="pvpBackToSetup()" data-i18n="pvp.choose.back" style="margin-top: 10px">← Retour</button>
+  </div>
+</div>
+
 <!-- ========== PvP : CHOIX ROLE ========== -->
 <div id="screen-pvp-choose" class="screen">
   <div class="header">
@@ -682,6 +711,7 @@
     <p style="text-align:center;color:var(--cream-soft);margin-bottom:20px" data-i18n="pvp.choose.text">Un joueur crée la partie...</p>
     <button class="btn" onclick="pvpStartHost()" data-i18n="pvp.choose.host">Créer une partie</button>
     <button class="btn secondary" onclick="pvpStartGuest()" data-i18n="pvp.choose.join">Rejoindre avec un code</button>
+    <button class="btn secondary" onclick="pvpEditConfig()" data-i18n="pvp.choose.editConfig" style="margin-top: 10px">Modifier la config Firebase</button>
     <button class="btn secondary" onclick="pvpBackToSetup()" data-i18n="pvp.choose.back" style="margin-top: 10px">← Retour</button>
   </div>
 </div>
@@ -697,9 +727,6 @@
       <button class="copy-btn" id="host-copy-btn" onclick="pvpCopyCode()" data-i18n="pvp.host.copy">Copier le code</button>
     </div>
     <div id="pvp-host-status" class="connection-status"></div>
-    <div class="debug-log" id="pvp-host-debug">
-      <div class="debug-title">▶ Debug log</div>
-    </div>
     <button class="btn secondary" onclick="pvpCancel()" data-i18n="pvp.choose.back" style="margin-top:14px">← Retour</button>
   </div>
 </div>
@@ -715,21 +742,18 @@
     </div>
     <button class="btn" onclick="pvpGuestConnect()" data-i18n="pvp.guest.connect">Se connecter</button>
     <div id="pvp-guest-status" class="connection-status" style="margin-top:14px"></div>
-    <div class="debug-log" id="pvp-guest-debug">
-      <div class="debug-title">▶ Debug log</div>
-    </div>
     <button class="btn secondary" onclick="pvpCancel()" data-i18n="pvp.choose.back" style="margin-top:14px">← Retour</button>
   </div>
 </div>
 
-<!-- ========== PvP : TEST CONNECTION ========== -->
+<!-- ========== PvP : TEST ========== -->
 <div id="screen-pvp-test" class="screen">
   <div class="pvp-screen">
     <div class="ornament" style="font-size:48px;margin-bottom:14px">✅</div>
     <h2 data-i18n="pvp.test.title">Test de connexion</h2>
     <div id="pvp-test-role" class="pvp-role-badge"></div>
     <div id="pvp-test-status" class="connection-status ok" data-i18n="pvp.connected">Connecté !</div>
-    <p style="margin-top:20px" data-i18n="pvp.test.received">Messages reçus :</p>
+    <p style="margin-top:20px" data-i18n="pvp.test.received">Messages échangés :</p>
     <div id="pvp-test-log" style="background:var(--bg-deep);padding:12px;border-radius:8px;font-family:var(--mono);font-size:12px;min-height:80px;text-align:left;color:var(--gold-bright);max-height:200px;overflow-y:auto;word-break:break-word"></div>
     <button class="btn" onclick="pvpSendTestPing()" data-i18n="pvp.test.send" style="margin-top:14px">Envoyer un ping</button>
     <button class="btn secondary" onclick="pvpCancel()" data-i18n="pvp.choose.back" style="margin-top:10px">← Retour</button>
@@ -744,6 +768,23 @@
     <button class="btn" onclick="closeModal()" style="margin-top:14px" data-i18n="modal.close">Fermer</button>
   </div>
 </div>
+
+<script type="module">
+// ============================================================
+// Firebase ESM module loaded from CDN — exposed on window.FB
+// ============================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import {
+  getDatabase, ref, set, get, push, onValue, onChildAdded, onDisconnect, remove, serverTimestamp, off
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
+
+window.FB = {
+  initializeApp, getDatabase, ref, set, get, push, onValue, onChildAdded, onDisconnect, remove, serverTimestamp, off,
+  ready: true
+};
+// Notify the main script that Firebase is ready
+window.dispatchEvent(new Event('fb-ready'));
+</script>
 
 <script>
 'use strict';
@@ -774,22 +815,33 @@ const I18N = {
     'setup.mode.local.sub': 'PASS & PLAY',
     'setup.mode.remote': '2 téléphones',
     'setup.mode.remote.sub': 'EN LIGNE',
-    // PvP
+    // PvP - Firebase config
+    'pvp.config.title': 'Configuration Firebase',
+    'pvp.config.text': "Pour jouer à distance, colle les clés de ton projet Firebase. Elles sont sauvegardées localement.",
+    'pvp.config.url': 'URL de la base (databaseURL)',
+    'pvp.config.key': 'Clé API (apiKey)',
+    'pvp.config.help': 'Crée un projet sur firebase.google.com puis active "Realtime Database"',
+    'pvp.config.save': 'Continuer',
+    'pvp.config.guide': 'Voir le guide de setup',
+    'pvp.config.empty': 'Les deux champs sont obligatoires',
+    'pvp.config.invalid': 'URL ou clé invalide',
+    // PvP - flow
     'pvp.choose.title': 'Jouer à distance',
     'pvp.choose.text': "Un joueur crée la partie et donne le code à l'autre.",
     'pvp.choose.host': 'Créer une partie',
     'pvp.choose.join': 'Rejoindre avec un code',
     'pvp.choose.back': '← Retour',
+    'pvp.choose.editConfig': 'Modifier la config Firebase',
     'pvp.host.title': 'TU ES HÔTE',
     'pvp.host.code': 'Code de la partie',
     'pvp.host.share': "Partage ce code à l'autre joueur",
     'pvp.host.waiting': "En attente de l'invité...",
     'pvp.host.copy': 'Copier le code',
     'pvp.host.copied': 'Copié !',
-    'pvp.host.generating': 'Génération du code...',
+    'pvp.host.generating': 'Création de la partie...',
     'pvp.guest.title': 'TU ES INVITÉ',
     'pvp.guest.codeInput': "Code de la partie",
-    'pvp.guest.codeHelp': 'Entre le code donné par l\'hôte',
+    'pvp.guest.codeHelp': "Entre le code donné par l'hôte",
     'pvp.guest.connect': 'Se connecter',
     'pvp.guest.invalid': 'Code invalide ou partie introuvable',
     'pvp.connecting': 'Connexion en cours...',
@@ -803,9 +855,10 @@ const I18N = {
     'pvp.waiting.opponent': "En attente de l'adversaire...",
     'pvp.test.title': 'Test de connexion',
     'pvp.test.send': 'Envoyer un ping',
-    'pvp.test.received': "Messages reçus :",
+    'pvp.test.received': "Messages échangés :",
     'pvp.test.continueBtn': "Continuer (jeu à venir...)",
-    'pvp.peer.error': 'Erreur de connexion au serveur',
+    'pvp.firebase.error': 'Erreur Firebase',
+    'pvp.firebase.loading': 'Chargement de Firebase...',
     'setup.players': 'Joueurs',
     'setup.player1': 'Joueur 1',
     'setup.player2': 'Joueur 2',
@@ -896,18 +949,28 @@ const I18N = {
     'setup.mode.local.sub': 'PASS & PLAY',
     'setup.mode.remote': '2 phones',
     'setup.mode.remote.sub': 'ONLINE',
+    'pvp.config.title': 'Firebase configuration',
+    'pvp.config.text': 'To play online, paste your Firebase project keys. They are saved locally.',
+    'pvp.config.url': 'Database URL (databaseURL)',
+    'pvp.config.key': 'API key (apiKey)',
+    'pvp.config.help': 'Create a project on firebase.google.com and enable "Realtime Database"',
+    'pvp.config.save': 'Continue',
+    'pvp.config.guide': 'Setup guide',
+    'pvp.config.empty': 'Both fields are required',
+    'pvp.config.invalid': 'Invalid URL or key',
     'pvp.choose.title': 'Play online',
     'pvp.choose.text': 'One player creates the game and gives the code to the other.',
     'pvp.choose.host': 'Create a game',
     'pvp.choose.join': 'Join with a code',
     'pvp.choose.back': '← Back',
+    'pvp.choose.editConfig': 'Edit Firebase config',
     'pvp.host.title': 'YOU ARE HOST',
     'pvp.host.code': 'Game code',
     'pvp.host.share': 'Share this code with the other player',
     'pvp.host.waiting': 'Waiting for guest...',
     'pvp.host.copy': 'Copy code',
     'pvp.host.copied': 'Copied!',
-    'pvp.host.generating': 'Generating code...',
+    'pvp.host.generating': 'Creating game...',
     'pvp.guest.title': 'YOU ARE GUEST',
     'pvp.guest.codeInput': 'Game code',
     'pvp.guest.codeHelp': 'Enter the code given by the host',
@@ -924,9 +987,10 @@ const I18N = {
     'pvp.waiting.opponent': 'Waiting for opponent...',
     'pvp.test.title': 'Connection test',
     'pvp.test.send': 'Send a ping',
-    'pvp.test.received': 'Messages received:',
+    'pvp.test.received': 'Messages exchanged:',
     'pvp.test.continueBtn': 'Continue (game coming...)',
-    'pvp.peer.error': 'Server connection error',
+    'pvp.firebase.error': 'Firebase error',
+    'pvp.firebase.loading': 'Loading Firebase...',
     'setup.players': 'Players',
     'setup.player1': 'Player 1',
     'setup.player2': 'Player 2',
@@ -1017,18 +1081,28 @@ const I18N = {
     'setup.mode.local.sub': 'ส่งต่อกัน',
     'setup.mode.remote': '๒ เครื่อง',
     'setup.mode.remote.sub': 'ออนไลน์',
+    'pvp.config.title': 'ตั้งค่า Firebase',
+    'pvp.config.text': 'วางคีย์ของโปรเจกต์ Firebase บันทึกในเครื่อง',
+    'pvp.config.url': 'URL ฐานข้อมูล (databaseURL)',
+    'pvp.config.key': 'คีย์ API (apiKey)',
+    'pvp.config.help': 'สร้างโปรเจกต์ที่ firebase.google.com แล้วเปิด "Realtime Database"',
+    'pvp.config.save': 'ต่อไป',
+    'pvp.config.guide': 'คู่มือการตั้งค่า',
+    'pvp.config.empty': 'ต้องกรอกทั้งสองช่อง',
+    'pvp.config.invalid': 'URL หรือคีย์ไม่ถูกต้อง',
     'pvp.choose.title': 'เล่นออนไลน์',
     'pvp.choose.text': 'ผู้เล่นหนึ่งสร้างเกม แล้วบอกรหัสให้อีกคน',
     'pvp.choose.host': 'สร้างเกม',
     'pvp.choose.join': 'เข้าร่วมด้วยรหัส',
     'pvp.choose.back': '← ย้อนกลับ',
+    'pvp.choose.editConfig': 'แก้ไขการตั้งค่า Firebase',
     'pvp.host.title': 'คุณคือโฮสต์',
     'pvp.host.code': 'รหัสเกม',
     'pvp.host.share': 'แชร์รหัสนี้ให้ผู้เล่นอีกคน',
     'pvp.host.waiting': 'กำลังรอแขก...',
     'pvp.host.copy': 'คัดลอกรหัส',
     'pvp.host.copied': 'คัดลอกแล้ว!',
-    'pvp.host.generating': 'กำลังสร้างรหัส...',
+    'pvp.host.generating': 'กำลังสร้างเกม...',
     'pvp.guest.title': 'คุณคือแขก',
     'pvp.guest.codeInput': 'รหัสเกม',
     'pvp.guest.codeHelp': 'ใส่รหัสที่โฮสต์ให้',
@@ -1045,9 +1119,10 @@ const I18N = {
     'pvp.waiting.opponent': 'รอคู่ต่อสู้...',
     'pvp.test.title': 'ทดสอบการเชื่อมต่อ',
     'pvp.test.send': 'ส่งปิง',
-    'pvp.test.received': 'ข้อความที่ได้รับ:',
+    'pvp.test.received': 'ข้อความที่แลก:',
     'pvp.test.continueBtn': 'ต่อไป (เกมเร็วๆ นี้...)',
-    'pvp.peer.error': 'ข้อผิดพลาดการเชื่อมต่อเซิร์ฟเวอร์',
+    'pvp.firebase.error': 'ข้อผิดพลาด Firebase',
+    'pvp.firebase.loading': 'กำลังโหลด Firebase...',
     'setup.players': 'ผู้เล่น',
     'setup.player1': 'ผู้เล่น ๑',
     'setup.player2': 'ผู้เล่น ๒',
@@ -1138,18 +1213,28 @@ const I18N = {
     'setup.mode.local.sub': '轮流游玩',
     'setup.mode.remote': '双机联机',
     'setup.mode.remote.sub': '在线',
+    'pvp.config.title': 'Firebase 配置',
+    'pvp.config.text': '粘贴你的 Firebase 项目密钥。本地保存。',
+    'pvp.config.url': '数据库 URL (databaseURL)',
+    'pvp.config.key': 'API 密钥 (apiKey)',
+    'pvp.config.help': '在 firebase.google.com 创建项目并启用 "Realtime Database"',
+    'pvp.config.save': '继续',
+    'pvp.config.guide': '设置指南',
+    'pvp.config.empty': '两个字段都必须填写',
+    'pvp.config.invalid': 'URL 或密钥无效',
     'pvp.choose.title': '在线游戏',
     'pvp.choose.text': '一位玩家创建游戏并把代码给另一位。',
     'pvp.choose.host': '创建游戏',
     'pvp.choose.join': '用代码加入',
     'pvp.choose.back': '← 返回',
+    'pvp.choose.editConfig': '修改 Firebase 配置',
     'pvp.host.title': '你是房主',
     'pvp.host.code': '游戏代码',
     'pvp.host.share': '把这个代码分享给另一位玩家',
     'pvp.host.waiting': '等待访客加入...',
     'pvp.host.copy': '复制代码',
     'pvp.host.copied': '已复制！',
-    'pvp.host.generating': '正在生成代码...',
+    'pvp.host.generating': '正在创建游戏...',
     'pvp.guest.title': '你是访客',
     'pvp.guest.codeInput': '游戏代码',
     'pvp.guest.codeHelp': '输入房主给的代码',
@@ -1166,9 +1251,10 @@ const I18N = {
     'pvp.waiting.opponent': '等待对手...',
     'pvp.test.title': '连接测试',
     'pvp.test.send': '发送 ping',
-    'pvp.test.received': '收到的消息：',
+    'pvp.test.received': '交换的消息：',
     'pvp.test.continueBtn': '继续（游戏即将到来...）',
-    'pvp.peer.error': '服务器连接错误',
+    'pvp.firebase.error': 'Firebase 错误',
+    'pvp.firebase.loading': '正在加载 Firebase...',
     'setup.players': '玩家',
     'setup.player1': '玩家 1',
     'setup.player2': '玩家 2',
@@ -1513,49 +1599,59 @@ function formatMoney(n) {
 }
 
 // ============================================================
-// NET — PeerJS (WebRTC P2P with public signaling server)
+// FIREBASE CONFIG STORAGE (localStorage, just the URL+key for convenience)
+// ============================================================
+const FBConfig = {
+  KEY: 'poker_thai_fb_config',
+  load() {
+    try {
+      const s = localStorage.getItem(this.KEY);
+      if (!s) return null;
+      const obj = JSON.parse(s);
+      if (obj && obj.url && obj.apiKey) return obj;
+    } catch (e) {}
+    return null;
+  },
+  save(url, apiKey) {
+    try {
+      localStorage.setItem(this.KEY, JSON.stringify({ url, apiKey }));
+      return true;
+    } catch (e) { return false; }
+  },
+  clear() {
+    try { localStorage.removeItem(this.KEY); } catch (e) {}
+  }
+};
+
+// ============================================================
+// NET — Firebase Realtime Database relay
 // ============================================================
 // Architecture:
-//   - Host calls peer.createPeer() and gets a generated peer id (we shorten to 6 chars
-//     for sharing, but the actual peer id is a prefixed version).
-//   - Guest connects to the host's peer id.
-//   - DataChannel opens, both sides exchange JSON messages.
-//
-// Public PeerJS Cloud is used for signaling. After signaling, all traffic is direct P2P
-// (or relayed via TURN if NAT-symmetric). No data persists on any server.
-//
-// Code format: we prefix our peer ids with "potk-" so we don't collide with other
-// PeerJS users on the public broker. Shown to the user as 6 alphanumeric uppercase chars.
+//   - Each game = a "room" identified by a 6-char code: /rooms/{code}/
+//   - Sub-paths:
+//       /rooms/{code}/meta            { hostJoined, guestJoined, createdAt }
+//       /rooms/{code}/messages/host/  pushed messages from host (guest reads via onChildAdded)
+//       /rooms/{code}/messages/guest/ pushed messages from guest (host reads via onChildAdded)
+//       /rooms/{code}/presence/host   true while host is online (onDisconnect → false)
+//       /rooms/{code}/presence/guest  true while guest is online
+//   - Host creates room, waits for guest to register presence
+//   - All game messages flow through Firebase Realtime DB push events (~100ms latency)
+//   - No P2P, no NAT issues, works through VPNs/4G/anything.
+//   - Default Realtime DB rules in "test mode" allow public read/write — fine for ephemeral rooms.
 
 const Net = (() => {
-  const PREFIX = 'pokr-';
   const CODE_LEN = 6;
   const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const OPEN_TIMEOUT = 30000;   // longer timeout to be safe on slow networks
 
-  // Public ICE servers to help NAT traversal across different networks (4G/Wifi)
-  const ICE_SERVERS = [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
-    // Open Relay public TURN — free community TURN servers
-    { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
-  ];
-
-  const PEER_OPTIONS = {
-    debug: 2,
-    config: { iceServers: ICE_SERVERS }
-  };
-
-  let peer = null;
-  let conn = null;
-  let role = null;
+  let app = null;
+  let db = null;
+  let role = null;            // 'host' | 'guest'
+  let myCode = null;
   let onMessage = null;
   let onStateChange = null;
-  let onDebugLog = null;
-  let myCode = null;
+  let inboundUnsub = null;    // function to detach onChildAdded listener
+  let presenceUnsub = null;   // function to detach presence listener
+  let lastSeenKey = null;     // ignore old messages on reconnect (per session)
 
   function randomCode() {
     const bytes = new Uint8Array(CODE_LEN);
@@ -1565,194 +1661,180 @@ const Net = (() => {
     return s;
   }
 
-  function dbg(line) {
-    const stamp = new Date().toLocaleTimeString();
-    console.log('[Net]', line);
-    if (onDebugLog) onDebugLog('[' + stamp + '] ' + line);
-  }
-
   function emitState(state) {
-    dbg('state → ' + state);
+    console.log('[Net]', state);
     if (onStateChange) onStateChange(state);
   }
 
-  function bindConn(c) {
-    conn = c;
-    dbg('binding data connection');
-    conn.on('open', () => { dbg('data channel OPEN'); emitState('open'); });
-    conn.on('data', (data) => {
-      let msg = data;
-      if (typeof data === 'string') {
-        try { msg = JSON.parse(data); } catch (e) { dbg('bad json received'); return; }
-      }
-      dbg('msg received: ' + (msg.type || '?'));
+  // Initialize Firebase app from URL + apiKey
+  function ensureApp() {
+    if (app && db) return true;
+    const cfg = FBConfig.load();
+    if (!cfg) return false;
+    if (!window.FB || !window.FB.ready) return false;
+    try {
+      app = window.FB.initializeApp({
+        apiKey: cfg.apiKey,
+        databaseURL: cfg.url
+      });
+      db = window.FB.getDatabase(app);
+      return true;
+    } catch (e) {
+      console.error('[Net] Firebase init failed', e);
+      app = null; db = null;
+      return false;
+    }
+  }
+
+  // Test the connection by writing a probe to /probe and reading it back.
+  async function testConfig(url, apiKey) {
+    try {
+      if (!window.FB || !window.FB.ready) throw new Error('Firebase SDK not loaded');
+      const testApp = window.FB.initializeApp({ apiKey, databaseURL: url }, 'probe-' + Date.now());
+      const testDb = window.FB.getDatabase(testApp);
+      const probeRef = window.FB.ref(testDb, '_probe/' + Date.now());
+      await window.FB.set(probeRef, { t: Date.now() });
+      await window.FB.remove(probeRef);
+      return true;
+    } catch (e) {
+      console.error('[Net] testConfig failed', e);
+      throw e;
+    }
+  }
+
+  // Host: create a room with random code, register presence, listen for guest.
+  async function hostCreate() {
+    if (!ensureApp()) throw new Error('Firebase not initialized');
+    role = 'host';
+    const code = randomCode();
+    myCode = code;
+    const roomRef = window.FB.ref(db, 'rooms/' + code);
+    const metaRef = window.FB.ref(db, 'rooms/' + code + '/meta');
+    const presHostRef = window.FB.ref(db, 'rooms/' + code + '/presence/host');
+    const presGuestRef = window.FB.ref(db, 'rooms/' + code + '/presence/guest');
+
+    // Create the room
+    await window.FB.set(metaRef, {
+      createdAt: window.FB.serverTimestamp()
+    });
+    // Mark host present, with auto-cleanup on disconnect
+    await window.FB.set(presHostRef, true);
+    window.FB.onDisconnect(presHostRef).set(false);
+    // Cleanup whole room when host disconnects (after some delay would be better, but for simplicity)
+    window.FB.onDisconnect(roomRef).remove();
+
+    emitState('hosting');
+
+    // Listen for guest presence
+    const presGuestListener = window.FB.onValue(presGuestRef, (snap) => {
+      const val = snap.val();
+      if (val === true) emitState('open');
+      else if (val === false) emitState('disconnected');
+    });
+    presenceUnsub = () => window.FB.off(presGuestRef);
+
+    // Listen to messages from guest
+    const guestMsgsRef = window.FB.ref(db, 'rooms/' + code + '/messages/guest');
+    lastSeenKey = null;
+    const msgListener = window.FB.onChildAdded(guestMsgsRef, (snap) => {
+      const msg = snap.val();
+      if (!msg) return;
       if (onMessage) onMessage(msg);
     });
-    conn.on('close', () => { dbg('data channel CLOSED'); emitState('closed'); });
-    conn.on('error', (err) => {
-      dbg('data channel ERROR: ' + (err && (err.type || err.message) || err));
-      emitState('error');
-    });
+    inboundUnsub = () => window.FB.off(guestMsgsRef);
+
+    return code;
   }
 
-  function hostCreate() {
-    return new Promise((resolve, reject) => {
-      if (typeof Peer === 'undefined') {
-        dbg('ERROR: PeerJS not loaded');
-        reject(new Error('PeerJS not loaded'));
-        return;
-      }
-      role = 'host';
-      const code = randomCode();
-      const peerId = PREFIX + code;
-      dbg('creating peer with id: ' + peerId);
-      try {
-        peer = new Peer(peerId, PEER_OPTIONS);
-      } catch (e) {
-        dbg('Peer ctor threw: ' + e.message);
-        reject(e); return;
-      }
-      let resolved = false;
-      const tOut = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          dbg('TIMEOUT after ' + OPEN_TIMEOUT + 'ms');
-          reject(new Error('PeerJS open timeout'));
-        }
-      }, OPEN_TIMEOUT);
-      peer.on('open', (id) => {
-        if (resolved) return;
-        resolved = true;
-        clearTimeout(tOut);
-        myCode = code;
-        dbg('peer OPEN, id=' + id);
-        emitState('peer-open');
-        resolve(code);
-      });
-      peer.on('connection', (c) => {
-        dbg('incoming connection from guest');
-        emitState('peer-incoming');
-        bindConn(c);
-      });
-      peer.on('error', (err) => {
-        const errType = err && err.type ? err.type : 'unknown';
-        dbg('peer ERROR: type=' + errType + ' msg=' + (err && err.message || ''));
-        if (!resolved) {
-          resolved = true;
-          clearTimeout(tOut);
-          reject(err);
-        } else {
-          emitState('peer-error:' + errType);
-        }
-      });
-      peer.on('disconnected', () => { dbg('peer disconnected from broker'); emitState('peer-disconnected'); });
-      peer.on('close', () => { dbg('peer CLOSED'); emitState('peer-closed'); });
+  // Guest: connect to existing room.
+  async function guestConnect(code) {
+    if (!ensureApp()) throw new Error('Firebase not initialized');
+    code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (code.length !== CODE_LEN) throw new Error('invalid_code');
+    role = 'guest';
+    myCode = code;
+
+    // Check that the room exists and host is present
+    const metaRef = window.FB.ref(db, 'rooms/' + code + '/meta');
+    const metaSnap = await window.FB.get(metaRef);
+    if (!metaSnap.exists()) throw new Error('room_not_found');
+
+    const presHostRef = window.FB.ref(db, 'rooms/' + code + '/presence/host');
+    const hostSnap = await window.FB.get(presHostRef);
+    if (hostSnap.val() !== true) throw new Error('host_offline');
+
+    const presGuestRef = window.FB.ref(db, 'rooms/' + code + '/presence/guest');
+    // Mark guest present, auto-cleanup
+    await window.FB.set(presGuestRef, true);
+    window.FB.onDisconnect(presGuestRef).set(false);
+
+    // Listen to host presence
+    const presHostListener = window.FB.onValue(presHostRef, (snap) => {
+      const val = snap.val();
+      if (val === false) emitState('disconnected');
     });
+    presenceUnsub = () => window.FB.off(presHostRef);
+
+    // Listen to messages from host (only new ones after our connection)
+    const hostMsgsRef = window.FB.ref(db, 'rooms/' + code + '/messages/host');
+    lastSeenKey = null;
+    const msgListener = window.FB.onChildAdded(hostMsgsRef, (snap) => {
+      const msg = snap.val();
+      if (!msg) return;
+      if (onMessage) onMessage(msg);
+    });
+    inboundUnsub = () => window.FB.off(hostMsgsRef);
+
+    emitState('open');
   }
 
-  function guestConnect(code) {
-    return new Promise((resolve, reject) => {
-      if (typeof Peer === 'undefined') {
-        dbg('ERROR: PeerJS not loaded');
-        reject(new Error('PeerJS not loaded'));
-        return;
-      }
-      role = 'guest';
-      code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-      if (code.length !== CODE_LEN) {
-        dbg('invalid code length: ' + code.length);
-        reject(new Error('Invalid code length'));
-        return;
-      }
-      dbg('creating guest peer (random id)');
-      try {
-        peer = new Peer(PEER_OPTIONS);
-      } catch (e) {
-        dbg('Peer ctor threw: ' + e.message);
-        reject(e); return;
-      }
-      let resolved = false;
-      const tOut = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          dbg('TIMEOUT after ' + OPEN_TIMEOUT + 'ms');
-          reject(new Error('Connection timeout'));
-        }
-      }, OPEN_TIMEOUT);
-      peer.on('open', (id) => {
-        dbg('guest peer OPEN, id=' + id);
-        emitState('peer-open');
-        const targetId = PREFIX + code;
-        dbg('connecting to ' + targetId);
-        const c = peer.connect(targetId, { reliable: true });
-        if (!c) {
-          dbg('peer.connect returned null');
-          if (!resolved) { resolved = true; clearTimeout(tOut); reject(new Error('connect returned null')); }
-          return;
-        }
-        bindConn(c);
-        c.on('open', () => {
-          if (resolved) return;
-          resolved = true;
-          clearTimeout(tOut);
-          dbg('guest data channel OPEN');
-          resolve();
-        });
-        c.on('error', (err) => {
-          dbg('guest data channel error: ' + (err && err.message || err));
-          if (!resolved) { resolved = true; clearTimeout(tOut); reject(err); }
-        });
-      });
-      peer.on('error', (err) => {
-        const errType = err && err.type ? err.type : 'unknown';
-        dbg('guest peer ERROR: type=' + errType + ' msg=' + (err && err.message || ''));
-        if (!resolved) {
-          resolved = true;
-          clearTimeout(tOut);
-          reject(err);
-        } else {
-          emitState('peer-error:' + errType);
-        }
-      });
-      peer.on('disconnected', () => { dbg('guest disconnected from broker'); });
-      peer.on('close', () => { dbg('guest peer CLOSED'); });
-    });
-  }
-
+  // Send a message — pushes to /rooms/{code}/messages/{role}/
   function send(msg) {
-    if (!conn || !conn.open) {
-      dbg('cannot send, channel not open');
+    if (!db || !myCode || !role) {
+      console.warn('[Net] cannot send, not connected');
       return false;
     }
     try {
-      conn.send(JSON.stringify(msg));
-      dbg('msg sent: ' + (msg.type || '?'));
+      const path = 'rooms/' + myCode + '/messages/' + role;
+      const msgsRef = window.FB.ref(db, path);
+      window.FB.push(msgsRef, msg);
       return true;
     } catch (e) {
-      dbg('send failed: ' + e.message);
+      console.error('[Net] send failed', e);
       return false;
     }
   }
 
   function close() {
-    dbg('closing all');
-    if (conn) { try { conn.close(); } catch (e) {} conn = null; }
-    if (peer) { try { peer.destroy(); } catch (e) {} peer = null; }
+    try { if (inboundUnsub) inboundUnsub(); } catch (e) {}
+    try { if (presenceUnsub) presenceUnsub(); } catch (e) {}
+    inboundUnsub = null;
+    presenceUnsub = null;
+    // Best-effort: remove the room (host) or just our presence (guest)
+    if (db && myCode) {
+      try {
+        if (role === 'host') {
+          const roomRef = window.FB.ref(db, 'rooms/' + myCode);
+          window.FB.remove(roomRef);
+        } else if (role === 'guest') {
+          const presGuestRef = window.FB.ref(db, 'rooms/' + myCode + '/presence/guest');
+          window.FB.set(presGuestRef, false);
+        }
+      } catch (e) {}
+    }
     role = null;
     myCode = null;
   }
 
-  function isOpen() { return conn && conn.open; }
+  function isOpen() { return !!(db && myCode && role); }
   function getRole() { return role; }
   function getCode() { return myCode; }
 
   return {
-    hostCreate, guestConnect,
-    send, close, isOpen,
-    getRole, getCode,
+    testConfig, hostCreate, guestConnect,
+    send, close, isOpen, getRole, getCode,
     setOnMessage: (fn) => { onMessage = fn; },
-    setOnStateChange: (fn) => { onStateChange = fn; },
-    setOnDebugLog: (fn) => { onDebugLog = fn; }
+    setOnStateChange: (fn) => { onStateChange = fn; }
   };
 })();
 
@@ -1760,7 +1842,7 @@ const Net = (() => {
 // PvP FLOW
 // ============================================================
 function switchScreen(id) {
-  const screens = ['screen-setup','screen-game','screen-pvp-choose','screen-pvp-host','screen-pvp-guest','screen-pvp-test'];
+  const screens = ['screen-setup','screen-game','screen-pvp-config','screen-pvp-choose','screen-pvp-host','screen-pvp-guest','screen-pvp-test'];
   screens.forEach(s => {
     const el = $(s);
     if (el) el.classList.toggle('active', s === id);
@@ -1779,9 +1861,69 @@ function pvpCancel() {
   window.scrollTo(0, 0);
 }
 
+// Entry point when user chose remote mode and clicked "Start"
 function pvpEnter() {
-  switchScreen('screen-pvp-choose');
+  // Check if Firebase config exists; if not, go to config screen
+  const cfg = FBConfig.load();
+  if (!cfg) {
+    pvpEditConfig();
+  } else {
+    switchScreen('screen-pvp-choose');
+    window.scrollTo(0, 0);
+  }
+}
+
+function pvpEditConfig() {
+  switchScreen('screen-pvp-config');
   window.scrollTo(0, 0);
+  const cfg = FBConfig.load();
+  if (cfg) {
+    $('fb-url').value = cfg.url || '';
+    $('fb-key').value = cfg.apiKey || '';
+  }
+  $('fb-config-status').className = 'connection-status';
+  $('fb-config-status').textContent = '';
+  $('fb-config-status').style.display = 'none';
+}
+
+async function pvpSaveConfig() {
+  const url = $('fb-url').value.trim();
+  const apiKey = $('fb-key').value.trim();
+  const statusEl = $('fb-config-status');
+  statusEl.style.display = 'inline-block';
+
+  if (!url || !apiKey) {
+    statusEl.className = 'connection-status fail';
+    statusEl.textContent = t('pvp.config.empty');
+    return;
+  }
+  // Basic format check
+  if (!/^https:\/\/.+\.(firebaseio\.com|firebasedatabase\.app)\/?$/i.test(url)) {
+    statusEl.className = 'connection-status fail';
+    statusEl.textContent = t('pvp.config.invalid');
+    return;
+  }
+  if (apiKey.length < 20) {
+    statusEl.className = 'connection-status fail';
+    statusEl.textContent = t('pvp.config.invalid');
+    return;
+  }
+  statusEl.className = 'connection-status';
+  statusEl.innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.connecting'));
+
+  try {
+    await Net.testConfig(url, apiKey);
+    FBConfig.save(url, apiKey);
+    statusEl.className = 'connection-status ok';
+    statusEl.textContent = t('pvp.connected');
+    setTimeout(() => {
+      switchScreen('screen-pvp-choose');
+      window.scrollTo(0, 0);
+    }, 600);
+  } catch (e) {
+    statusEl.className = 'connection-status fail';
+    statusEl.textContent = t('pvp.firebase.error') + ': ' + (e && e.message || e);
+  }
 }
 
 async function pvpStartHost() {
@@ -1792,11 +1934,9 @@ async function pvpStartHost() {
   $('pvp-host-status').innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.host.generating'));
   $('host-copy-btn').classList.remove('copied');
   $('host-copy-btn').textContent = t('pvp.host.copy');
-  clearDebugLog('pvp-host-debug');
 
   Net.setOnStateChange(handleNetStateHost);
   Net.setOnMessage(handleNetMessage);
-  Net.setOnDebugLog((line) => appendDebugLog('pvp-host-debug', line));
 
   try {
     const code = await Net.hostCreate();
@@ -1805,9 +1945,8 @@ async function pvpStartHost() {
     $('pvp-host-status').innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.host.waiting'));
   } catch (e) {
     console.error('[PvP host] failed', e);
-    appendDebugLog('pvp-host-debug', '✗ FAILED: ' + (e && (e.type || e.message) || e), 'err');
     $('pvp-host-status').className = 'connection-status fail';
-    $('pvp-host-status').textContent = t('pvp.peer.error');
+    $('pvp-host-status').textContent = t('pvp.firebase.error');
   }
 }
 
@@ -1824,12 +1963,6 @@ function pvpCopyCode() {
         btn.textContent = t('pvp.host.copy');
       }, 1500);
     }).catch(() => {});
-  } else {
-    // Fallback: select the code element
-    const range = document.createRange();
-    range.selectNode($('host-code-value'));
-    window.getSelection().removeAllRanges();
-    window.getSelection().addRange(range);
   }
 }
 
@@ -1839,12 +1972,10 @@ function pvpStartGuest() {
   $('guest-code-input').value = '';
   $('pvp-guest-status').className = 'connection-status';
   $('pvp-guest-status').textContent = '';
-  clearDebugLog('pvp-guest-debug');
   setTimeout(() => { try { $('guest-code-input').focus(); } catch(e){} }, 100);
 
   Net.setOnStateChange(handleNetStateGuest);
   Net.setOnMessage(handleNetMessage);
-  Net.setOnDebugLog((line) => appendDebugLog('pvp-guest-debug', line));
 }
 
 async function pvpGuestConnect() {
@@ -1856,15 +1987,17 @@ async function pvpGuestConnect() {
   }
   $('pvp-guest-status').className = 'connection-status';
   $('pvp-guest-status').innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.connecting'));
+
   try {
     await Net.guestConnect(code);
+    // Net will emit 'open' state which moves to test screen
   } catch (e) {
     console.error('[PvP guest] failed', e);
-    const errType = e && e.type ? e.type : 'unknown';
-    appendDebugLog('pvp-guest-debug', '✗ FAILED: type=' + errType + ' msg=' + (e && e.message || ''), 'err');
     $('pvp-guest-status').className = 'connection-status fail';
-    if (errType === 'peer-unavailable') {
+    if (e && e.message === 'room_not_found') {
       $('pvp-guest-status').textContent = t('pvp.guest.invalid');
+    } else if (e && e.message === 'host_offline') {
+      $('pvp-guest-status').textContent = t('pvp.disconnected');
     } else {
       $('pvp-guest-status').textContent = t('pvp.failed');
     }
@@ -1872,37 +2005,13 @@ async function pvpGuestConnect() {
   }
 }
 
-// ---- Debug log helpers ----
-function appendDebugLog(elId, line, kind) {
-  const el = $(elId);
-  if (!el) return;
-  const div = document.createElement('div');
-  div.className = 'line' + (kind ? ' ' + kind : '');
-  div.textContent = line;
-  el.appendChild(div);
-  el.scrollTop = el.scrollHeight;
-}
-
-function clearDebugLog(elId) {
-  const el = $(elId);
-  if (!el) return;
-  el.innerHTML = '<div class="debug-title">▶ Debug log</div>';
-}
-
 function handleNetStateHost(state) {
   if (state === 'open') {
-    // A guest is now connected to us
     moveToTestScreen();
-  } else if (state === 'closed' || state === 'peer-closed') {
+  } else if (state === 'disconnected') {
     if ($('screen-pvp-test').classList.contains('active')) {
       $('pvp-test-status').className = 'connection-status fail';
       $('pvp-test-status').textContent = t('pvp.disconnected');
-    }
-  } else if (state === 'error' || state === 'peer-error') {
-    const el = $('pvp-host-status');
-    if (el) {
-      el.className = 'connection-status fail';
-      el.textContent = t('pvp.peer.error');
     }
   }
 }
@@ -1910,16 +2019,10 @@ function handleNetStateHost(state) {
 function handleNetStateGuest(state) {
   if (state === 'open') {
     moveToTestScreen();
-  } else if (state === 'closed' || state === 'peer-closed') {
+  } else if (state === 'disconnected') {
     if ($('screen-pvp-test').classList.contains('active')) {
       $('pvp-test-status').className = 'connection-status fail';
       $('pvp-test-status').textContent = t('pvp.disconnected');
-    }
-  } else if (state === 'error' || state === 'peer-error') {
-    const el = $('pvp-guest-status');
-    if (el) {
-      el.className = 'connection-status fail';
-      el.textContent = t('pvp.failed');
     }
   }
 }
@@ -1961,14 +2064,6 @@ function pvpSendTestPing() {
       log.appendChild(line);
       log.scrollTop = log.scrollHeight;
     }
-  } else {
-    const log = $('pvp-test-log');
-    if (log) {
-      const line = document.createElement('div');
-      line.style.color = 'var(--red)';
-      line.textContent = '✗ send failed';
-      log.appendChild(line);
-    }
   }
 }
 
@@ -1977,7 +2072,6 @@ function pvpSendTestPing() {
 // ============================================================
 function startGame() {
   if (State.mode === 'remote') {
-    // PvP mode — go to connection screen
     const n1 = $('p1-name').value.trim() || t('p1.default');
     State.players = [{ name: n1, cash: 0 }, { name: '...', cash: 0 }];
     State.config = readConfig();
