@@ -260,8 +260,26 @@
     background: rgba(212,160,86,0.06);
     border-radius: 8px;
   }
-  .card.shift-left { transform: translateX(-15px); transition: transform .2s; }
-  .card.shift-right { transform: translateX(15px); transition: transform .2s; }
+  /* Smooth shifting of neighbour cards to make room during a drag */
+  .card.shifting {
+    transition: transform 0.22s cubic-bezier(0.34, 1.2, 0.64, 1);
+  }
+  .card.shift-before { transform: translateX(-34px); }
+  .card.shift-after  { transform: translateX(34px); }
+  .card.compact.shift-before { transform: translateX(-28px); }
+  .card.compact.shift-after  { transform: translateX(28px); }
+  /* Visual placeholder gap in the receiving row.
+     No width transition: neighbour cards are animated via FLIP technique in JS. */
+  .insert-placeholder {
+    width: 0; height: 70px;
+    margin: 0; padding: 0;
+    flex-shrink: 0;
+  }
+  .insert-placeholder.active {
+    width: 62px; /* 58px card + 4px gap */
+  }
+  .compact-compose .insert-placeholder { height: 58px; }
+  .compact-compose .insert-placeholder.active { width: 52px; /* 48px + 4px */ }
 
   /* COMPOSE SCREEN */
   .compose-banner {
@@ -3144,11 +3162,12 @@ function startComposeUI(opts) {
   let draggedFromIdx = null;
   let dragElement = null;
   let dragOffsetX = 0, dragOffsetY = 0;
-  let lastHoveredGroup = null;
-  let lastHoveredIdx = null;
   let dragStartX = 0, dragStartY = 0;
   let dragStarted = false;
-  const DRAG_THRESHOLD = 5; // pixels before drag kicks in
+  let currentHoverGroup = null;
+  let currentInsertIdx = null;
+  let placeholder = null;     // a single live placeholder element reused across rows
+  const DRAG_THRESHOLD = 5;
 
   function getRowForGroup(g) {
     if (g === 'hand') return handRow;
@@ -3159,10 +3178,22 @@ function startComposeUI(opts) {
     return groups[g];
   }
 
-  function findCardElIndex(row, x, y) {
-    // Returns the index in the row that the (x,y) point would insert at.
-    // Useful for reordering.
-    const children = Array.from(row.children).filter(el => el.classList && el.classList.contains('card'));
+  // Build a placeholder div once
+  function ensurePlaceholder() {
+    if (!placeholder) {
+      placeholder = document.createElement('div');
+      placeholder.className = 'insert-placeholder';
+    }
+    return placeholder;
+  }
+
+  // Compute the insertion index in a row, given a pointer x position.
+  // Returns an integer in [0, visibleCount].
+  function computeInsertIdx(row, x) {
+    const children = Array.from(row.children).filter(el =>
+      el.classList && el.classList.contains('card') &&
+      el.style.visibility !== 'hidden'
+    );
     if (children.length === 0) return 0;
     for (let i = 0; i < children.length; i++) {
       const r = children[i].getBoundingClientRect();
@@ -3187,8 +3218,84 @@ function startComposeUI(opts) {
     return null;
   }
 
+  // Move/insert the placeholder using FLIP animation technique for buttery smooth
+  // neighbour-card shifting (like Hearthstone/Balatro).
+  function updatePlaceholder(group, insertIdx) {
+    if (!placeholder) return;
+
+    // Collect all card elements currently in any row (excluding the hidden source)
+    // and snapshot their bounding rects BEFORE we make any DOM change.
+    const allRows = [handRow, ...Object.values(slots).map(s => s.row)];
+    const allCardEls = [];
+    allRows.forEach(row => {
+      Array.from(row.children).forEach(el => {
+        if (el.classList && el.classList.contains('card') && el.style.visibility !== 'hidden') {
+          allCardEls.push(el);
+        }
+      });
+    });
+    const firstRects = new Map();
+    allCardEls.forEach(el => {
+      firstRects.set(el, el.getBoundingClientRect());
+    });
+
+    // Apply the DOM change (move placeholder, set active)
+    if (group == null) {
+      placeholder.classList.remove('active');
+      const ph = placeholder;
+      setTimeout(() => {
+        if (ph && ph.parentElement && !ph.classList.contains('active')) {
+          ph.parentElement.removeChild(ph);
+        }
+      }, 240);
+    } else {
+      const row = getRowForGroup(group);
+      const visibleCards = Array.from(row.children).filter(el =>
+        el.classList && el.classList.contains('card') && el.style.visibility !== 'hidden'
+      );
+      const targetEl = visibleCards[insertIdx]; // undefined → append at end
+
+      if (placeholder.parentElement && placeholder.parentElement !== row) {
+        placeholder.parentElement.removeChild(placeholder);
+      }
+      if (!placeholder.parentElement) {
+        if (targetEl) row.insertBefore(placeholder, targetEl);
+        else row.appendChild(placeholder);
+      } else {
+        // Same row — re-insert if position changed
+        const phNextSibling = placeholder.nextElementSibling;
+        if (targetEl && phNextSibling !== targetEl) {
+          row.insertBefore(placeholder, targetEl);
+        } else if (!targetEl && placeholder.nextElementSibling) {
+          row.appendChild(placeholder);
+        }
+      }
+      placeholder.classList.add('active');
+    }
+
+    // Force layout flush so the new positions are computed
+    // (read offsetWidth to trigger reflow)
+    allCardEls[0] && allCardEls[0].offsetWidth;
+
+    // Now apply FLIP: for each card whose position changed, animate the difference
+    allCardEls.forEach(el => {
+      const oldRect = firstRects.get(el);
+      const newRect = el.getBoundingClientRect();
+      const dx = oldRect.left - newRect.left;
+      const dy = oldRect.top - newRect.top;
+      if (dx === 0 && dy === 0) return;
+      // Cancel any in-progress transform transition
+      el.style.transition = 'none';
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+      // Force reflow then animate to identity
+      el.offsetWidth; // reflow
+      el.style.transition = 'transform 0.22s cubic-bezier(0.34, 1.2, 0.64, 1)';
+      el.style.transform = '';
+    });
+  }
+
   function onPointerDown(e, card, fromGroup, fromIdx) {
-    if (e.button !== undefined && e.button !== 0) return; // only left click
+    if (e.button !== undefined && e.button !== 0) return;
     e.preventDefault();
     draggedCard = card;
     draggedFromGroup = fromGroup;
@@ -3196,7 +3303,8 @@ function startComposeUI(opts) {
     dragStartX = e.clientX;
     dragStartY = e.clientY;
     dragStarted = false;
-    // We listen on document for move/up
+    currentHoverGroup = null;
+    currentInsertIdx = null;
     document.addEventListener('pointermove', onPointerMove);
     document.addEventListener('pointerup', onPointerUp, { once: true });
     document.addEventListener('pointercancel', onPointerUp, { once: true });
@@ -3216,7 +3324,6 @@ function startComposeUI(opts) {
         const rect = sourceCardEl.getBoundingClientRect();
         dragOffsetX = dragStartX - rect.left;
         dragOffsetY = dragStartY - rect.top;
-        // Create a floating clone
         dragElement = sourceCardEl.cloneNode(true);
         dragElement.classList.add('dragging');
         dragElement.style.position = 'fixed';
@@ -3226,9 +3333,11 @@ function startComposeUI(opts) {
         dragElement.style.height = rect.height + 'px';
         dragElement.style.pointerEvents = 'none';
         dragElement.style.transition = 'none';
+        dragElement.style.margin = '0';
         document.body.appendChild(dragElement);
         sourceCardEl.style.visibility = 'hidden';
       }
+      ensurePlaceholder();
     }
 
     if (dragElement) {
@@ -3239,16 +3348,31 @@ function startComposeUI(opts) {
     // Detect hover target
     const under = elementUnderPoint(e.clientX, e.clientY);
     const group = findGroupFromElement(under);
-    if (group !== lastHoveredGroup) {
-      // Clear old hover
-      clearDragOverHints();
-      lastHoveredGroup = group;
-      lastHoveredIdx = null;
-      if (group && group !== 'hand') {
-        slots[group].el.classList.add('drag-over');
-      } else if (group === 'hand') {
-        handRow.classList.add('drag-over');
+
+    // Compute insertion index inside that row
+    let insertIdx = null;
+    let validGroup = null;
+    if (group) {
+      // Refuse if dropping into a full slot from a different group
+      const isFull = (group !== 'hand' && group !== draggedFromGroup &&
+                      groups[group].length >= groupTargets[group]);
+      if (!isFull) {
+        validGroup = group;
+        const row = getRowForGroup(group);
+        insertIdx = computeInsertIdx(row, e.clientX);
       }
+    }
+
+    if (validGroup !== currentHoverGroup || insertIdx !== currentInsertIdx) {
+      // Update visual feedback for the receiving slot
+      clearDragOverHints();
+      if (validGroup) {
+        if (validGroup === 'hand') handRow.classList.add('drag-over');
+        else slots[validGroup].el.classList.add('drag-over');
+      }
+      updatePlaceholder(validGroup, insertIdx);
+      currentHoverGroup = validGroup;
+      currentInsertIdx = insertIdx;
     }
   }
 
@@ -3262,17 +3386,18 @@ function startComposeUI(opts) {
     if (!draggedCard) return;
 
     if (!dragStarted) {
-      // It was a tap, not a drag — fall back to tap behavior (add or remove)
+      // Tap, not drag
       handleTap(draggedCard, draggedFromGroup);
       draggedCard = null;
       return;
     }
 
-    // It was a drag: figure out drop target
-    const dropGroup = findGroupFromElement(elementUnderPoint(e.clientX, e.clientY));
+    // Drag end — drop
+    const dropGroup = currentHoverGroup;
+    const dropIdx = currentInsertIdx;
     let success = false;
-    if (dropGroup) {
-      success = tryMoveCard(draggedCard, draggedFromGroup, dropGroup, e.clientX, e.clientY);
+    if (dropGroup !== null && dropIdx !== null) {
+      success = applyMove(draggedCard, draggedFromGroup, dropGroup, dropIdx);
     }
 
     // Cleanup drag visuals
@@ -3280,58 +3405,50 @@ function startComposeUI(opts) {
       dragElement.remove();
       dragElement = null;
     }
+    if (placeholder && placeholder.parentElement) {
+      placeholder.classList.remove('active');
+      placeholder.parentElement.removeChild(placeholder);
+    }
     clearDragOverHints();
     draggedCard = null;
     dragStarted = false;
+    currentHoverGroup = null;
+    currentInsertIdx = null;
     render();
   }
 
-  function tryMoveCard(card, fromGroup, toGroup, x, y) {
+  function applyMove(card, fromGroup, toGroup, insertIdx) {
+    const fromArr = groups[fromGroup];
+    const oldIdx = fromArr.indexOf(card);
+    if (oldIdx < 0) return false;
+
     if (fromGroup === toGroup) {
-      // Reorder within the same group
-      const arr = groups[fromGroup];
-      const oldIdx = arr.indexOf(card);
-      if (oldIdx < 0) return false;
-      const row = getRowForGroup(fromGroup);
-      let newIdx = findCardElIndex(row, x, y);
-      // The dragged card is currently invisible in the row, account for it
-      // The indices counted include only visible cards; we need to adjust.
-      // Simplest: remove from arr then insert at newIdx
-      arr.splice(oldIdx, 1);
-      if (newIdx > oldIdx) newIdx -= 1;
-      newIdx = Math.max(0, Math.min(arr.length, newIdx));
-      arr.splice(newIdx, 0, card);
+      // Reorder within same group
+      fromArr.splice(oldIdx, 1);
+      // Adjust insertIdx if needed because we just removed an element before the target
+      let newIdx = insertIdx;
+      if (oldIdx < newIdx) newIdx -= 1;
+      newIdx = Math.max(0, Math.min(fromArr.length, newIdx));
+      fromArr.splice(newIdx, 0, card);
       return true;
     }
-    // Different group — check capacity for slot groups
+    // Different group
     if (toGroup !== 'hand') {
-      const cap = groupTargets[toGroup];
-      if (groups[toGroup].length >= cap) {
-        // Slot full — return to original
-        return false;
-      }
+      if (groups[toGroup].length >= groupTargets[toGroup]) return false;
     }
-    // Remove from source
-    const fromArr = groups[fromGroup];
-    const idx = fromArr.indexOf(card);
-    if (idx >= 0) fromArr.splice(idx, 1);
-    // Insert at position determined by x,y in target row
+    fromArr.splice(oldIdx, 1);
     const toArr = groups[toGroup];
-    const targetRow = getRowForGroup(toGroup);
-    let insertIdx = findCardElIndex(targetRow, x, y);
-    insertIdx = Math.max(0, Math.min(toArr.length, insertIdx));
-    toArr.splice(insertIdx, 0, card);
+    let newIdx = Math.max(0, Math.min(toArr.length, insertIdx));
+    toArr.splice(newIdx, 0, card);
     return true;
   }
 
   function handleTap(card, fromGroup) {
     if (fromGroup === 'hand') {
-      // Add to first non-full slot in order: top, mid (if v8), bot
       if (groups.top.length < 2) moveCardTo(card, 'hand', 'top');
       else if (isV8 && groups.mid.length < 3) moveCardTo(card, 'hand', 'mid');
       else if (groups.bot.length < 3) moveCardTo(card, 'hand', 'bot');
     } else {
-      // Remove from slot, send back to hand
       moveCardTo(card, fromGroup, 'hand');
     }
     render();
@@ -3422,6 +3539,10 @@ function startComposeUI(opts) {
     if (timerId) { clearInterval(timerId); timerId = null; }
     document.removeEventListener('pointermove', onPointerMove);
     if (dragElement) { dragElement.remove(); dragElement = null; }
+    if (placeholder && placeholder.parentElement) {
+      placeholder.parentElement.removeChild(placeholder);
+    }
+    placeholder = null;
   }
 
   // Expose cleanup for callers that need to abort
