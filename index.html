@@ -735,6 +735,10 @@
 <div id="screen-pvp-guest" class="screen">
   <div class="pvp-screen">
     <span class="pvp-role-badge" data-i18n="pvp.guest.title">TU ES INVITÉ</span>
+    <div class="code-input-box" style="margin-bottom: 10px;">
+      <div class="label" data-i18n="pvp.guest.yourName">Ton nom</div>
+      <input id="guest-name-input" type="text" maxlength="20" placeholder="..." style="font-size: 20px; letter-spacing: 1px; text-transform: none;">
+    </div>
     <div class="code-input-box">
       <div class="label" data-i18n="pvp.guest.codeInput">Code de la partie</div>
       <input id="guest-code-input" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" maxlength="6" placeholder="······">
@@ -804,8 +808,8 @@ window.dispatchEvent(new Event('fb-ready'));
 //
 // If both values are left empty, users will be prompted to enter their own keys.
 const FIREBASE_BUILTIN_CONFIG = {
-  apiKey:      "AIzaSyBIyYC7Xtsoan41BD21Xsnp_n-i7qlsBr0",  // ← paste your apiKey here, e.g. "AIzaSy..."
-  databaseURL: "https://thai-poks-default-rtdb.asia-southeast1.firebasedatabase.app"   // ← paste your databaseURL here, e.g. "https://xxx-default-rtdb.europe-west1.firebasedatabase.app"
+  apiKey:      "",  // ← paste your apiKey here, e.g. "AIzaSy..."
+  databaseURL: ""   // ← paste your databaseURL here, e.g. "https://xxx-default-rtdb.europe-west1.firebasedatabase.app"
 };
 // ============================================================
 
@@ -879,6 +883,18 @@ const I18N = {
     'pvp.test.continueBtn': "Continuer (jeu à venir...)",
     'pvp.firebase.error': 'Erreur Firebase',
     'pvp.firebase.loading': 'Chargement de Firebase...',
+    'pvp.guest.yourName': 'Ton nom',
+    'pvp.guest.nameRequired': 'Entre ton nom',
+    'pvp.handshake': 'Synchronisation avec l\'adversaire...',
+    'pvp.protocol.error': 'Erreur de protocole',
+    'pvp.cheat.detected': 'Triche détectée !',
+    'pvp.cheat.text': 'Le hash de la main de l\'adversaire ne correspond pas. Manche annulée.',
+    'pvp.waiting.commit': "En attente de l'adversaire (commit)...",
+    'pvp.waiting.reveal': "En attente de l'adversaire (reveal)...",
+    'pvp.waiting.split': "L'adversaire compose sa main...",
+    'pvp.opponentLeft': "L'adversaire a quitté la partie",
+    'pvp.roundAborted': 'Manche annulée',
+    'pvp.you.committed': 'Ta main est verrouillée. En attente de l\'adversaire...',
     'setup.players': 'Joueurs',
     'setup.player1': 'Joueur 1',
     'setup.player2': 'Joueur 2',
@@ -1011,6 +1027,18 @@ const I18N = {
     'pvp.test.continueBtn': 'Continue (game coming...)',
     'pvp.firebase.error': 'Firebase error',
     'pvp.firebase.loading': 'Loading Firebase...',
+    'pvp.guest.yourName': 'Your name',
+    'pvp.guest.nameRequired': 'Enter your name',
+    'pvp.handshake': 'Syncing with opponent...',
+    'pvp.protocol.error': 'Protocol error',
+    'pvp.cheat.detected': 'Cheating detected!',
+    'pvp.cheat.text': "Opponent's hand hash doesn't match. Round aborted.",
+    'pvp.waiting.commit': 'Waiting for opponent (commit)...',
+    'pvp.waiting.reveal': 'Waiting for opponent (reveal)...',
+    'pvp.waiting.split': 'Opponent composing their hand...',
+    'pvp.opponentLeft': 'Opponent left the game',
+    'pvp.roundAborted': 'Round aborted',
+    'pvp.you.committed': 'Your hand is locked. Waiting for opponent...',
     'setup.players': 'Players',
     'setup.player1': 'Player 1',
     'setup.player2': 'Player 2',
@@ -1143,6 +1171,18 @@ const I18N = {
     'pvp.test.continueBtn': 'ต่อไป (เกมเร็วๆ นี้...)',
     'pvp.firebase.error': 'ข้อผิดพลาด Firebase',
     'pvp.firebase.loading': 'กำลังโหลด Firebase...',
+    'pvp.guest.yourName': 'ชื่อของคุณ',
+    'pvp.guest.nameRequired': 'ใส่ชื่อของคุณ',
+    'pvp.handshake': 'กำลังซิงค์กับคู่ต่อสู้...',
+    'pvp.protocol.error': 'ข้อผิดพลาดของโปรโตคอล',
+    'pvp.cheat.detected': 'ตรวจพบการโกง!',
+    'pvp.cheat.text': 'แฮชของไพ่คู่ต่อสู้ไม่ตรงกัน ยกเลิกตา',
+    'pvp.waiting.commit': 'รอคู่ต่อสู้ (commit)...',
+    'pvp.waiting.reveal': 'รอคู่ต่อสู้ (reveal)...',
+    'pvp.waiting.split': 'คู่ต่อสู้กำลังจัดไพ่...',
+    'pvp.opponentLeft': 'คู่ต่อสู้ออกจากเกม',
+    'pvp.roundAborted': 'ยกเลิกตา',
+    'pvp.you.committed': 'ไพ่ของคุณถูกล็อก รอคู่ต่อสู้...',
     'setup.players': 'ผู้เล่น',
     'setup.player1': 'ผู้เล่น ๑',
     'setup.player2': 'ผู้เล่น ๒',
@@ -1275,6 +1315,18 @@ const I18N = {
     'pvp.test.continueBtn': '继续（游戏即将到来...）',
     'pvp.firebase.error': 'Firebase 错误',
     'pvp.firebase.loading': '正在加载 Firebase...',
+    'pvp.guest.yourName': '你的名字',
+    'pvp.guest.nameRequired': '请输入你的名字',
+    'pvp.handshake': '正在与对手同步...',
+    'pvp.protocol.error': '协议错误',
+    'pvp.cheat.detected': '检测到作弊！',
+    'pvp.cheat.text': '对手手牌的哈希值不匹配。回合作废。',
+    'pvp.waiting.commit': '等待对手 (commit)...',
+    'pvp.waiting.reveal': '等待对手 (reveal)...',
+    'pvp.waiting.split': '对手正在组合手牌...',
+    'pvp.opponentLeft': '对手离开了游戏',
+    'pvp.roundAborted': '回合作废',
+    'pvp.you.committed': '你的手牌已锁定。等待对手...',
     'setup.players': '玩家',
     'setup.player1': '玩家 1',
     'setup.player2': '玩家 2',
@@ -1617,6 +1669,82 @@ function formatMoney(n) {
   if (Number.isInteger(v)) return String(v);
   return v.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
 }
+
+// ============================================================
+// CRYPTO HELPERS — for commit-reveal anti-cheat protocol
+// ============================================================
+const CryptoHelpers = (() => {
+  // Generate a fresh random seed (32 bytes), returned as hex
+  function randomSeed() {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    return bytesToHex(bytes);
+  }
+  function bytesToHex(bytes) {
+    let s = '';
+    for (let i = 0; i < bytes.length; i++) s += bytes[i].toString(16).padStart(2, '0');
+    return s;
+  }
+  function hexToBytes(hex) {
+    const out = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < out.length; i++) out[i] = parseInt(hex.substr(i*2, 2), 16);
+    return out;
+  }
+  // SHA-256 of a string, returned as hex
+  async function sha256(str) {
+    const enc = new TextEncoder();
+    const buf = await crypto.subtle.digest('SHA-256', enc.encode(str));
+    return bytesToHex(new Uint8Array(buf));
+  }
+  // Deterministic PRNG seeded from a hex string. Returns an int in [0, max)
+  // using rejection sampling.
+  // Algorithm: use sha256(seed || counter) and take the first 4 bytes as uint32.
+  function makePRNG(seedHex) {
+    let counter = 0;
+    let pool = [];
+    async function refillPool() {
+      const h = await sha256(seedHex + ':' + counter);
+      counter++;
+      pool = [];
+      const bytes = hexToBytes(h);
+      // Pack into 8 uint32s
+      for (let i = 0; i < 8; i++) {
+        const off = i * 4;
+        const v = (bytes[off] << 24) | (bytes[off+1] << 16) | (bytes[off+2] << 8) | bytes[off+3];
+        pool.push(v >>> 0); // force unsigned
+      }
+    }
+    async function nextUint32() {
+      if (pool.length === 0) await refillPool();
+      return pool.shift();
+    }
+    async function intBelow(max) {
+      if (max <= 0) throw new Error('bad max');
+      const range = 0x100000000;
+      const limit = range - (range % max);
+      let r;
+      do { r = await nextUint32(); } while (r >= limit);
+      return r % max;
+    }
+    async function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = await intBelow(i + 1);
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+    return { intBelow, shuffle };
+  }
+  // Stable JSON for hashing (sorted keys recursively)
+  function stableJSON(v) {
+    if (v === null || typeof v !== 'object') return JSON.stringify(v);
+    if (Array.isArray(v)) return '[' + v.map(stableJSON).join(',') + ']';
+    const keys = Object.keys(v).sort();
+    return '{' + keys.map(k => JSON.stringify(k) + ':' + stableJSON(v[k])).join(',') + '}';
+  }
+  return { randomSeed, sha256, makePRNG, stableJSON, bytesToHex, hexToBytes };
+})();
 
 // ============================================================
 // FIREBASE CONFIG STORAGE (localStorage, just the URL+key for convenience)
@@ -1963,6 +2091,10 @@ async function pvpSaveConfig() {
 }
 
 async function pvpStartHost() {
+  // Use the host's name from the setup screen (p1-name)
+  const hostName = ($('p1-name').value || '').trim() || t('p1.default');
+  PvP.setMyName(hostName);
+
   switchScreen('screen-pvp-host');
   window.scrollTo(0, 0);
   $('host-code-value').textContent = '······';
@@ -2015,18 +2147,26 @@ function pvpStartGuest() {
 }
 
 async function pvpGuestConnect() {
+  const name = ($('guest-name-input').value || '').trim();
+  if (!name) {
+    $('pvp-guest-status').className = 'connection-status fail';
+    $('pvp-guest-status').textContent = t('pvp.guest.nameRequired');
+    return;
+  }
   const code = $('guest-code-input').value.trim().toUpperCase();
   if (code.length !== 6) {
     $('pvp-guest-status').className = 'connection-status fail';
     $('pvp-guest-status').textContent = t('pvp.guest.invalid');
     return;
   }
+  // Save name for handshake (will be sent to host)
+  PvP.setMyName(name);
+
   $('pvp-guest-status').className = 'connection-status';
   $('pvp-guest-status').innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.connecting'));
 
   try {
     await Net.guestConnect(code);
-    // Net will emit 'open' state which moves to test screen
   } catch (e) {
     console.error('[PvP guest] failed', e);
     $('pvp-guest-status').className = 'connection-status fail';
@@ -2064,29 +2204,18 @@ function handleNetStateGuest(state) {
 }
 
 function moveToTestScreen() {
-  switchScreen('screen-pvp-test');
-  window.scrollTo(0, 0);
-  const isHost = Net.getRole() === 'host';
-  $('pvp-test-role').textContent = isHost ? 'HOST' : 'GUEST';
-  $('pvp-test-status').className = 'connection-status ok';
-  $('pvp-test-status').textContent = t('pvp.connected');
-  $('pvp-test-log').innerHTML = '';
+  // Connection established — begin PvP handshake (exchange names + config)
+  PvP.startHandshake();
 }
 
 function handleNetMessage(msg) {
-  if (!msg) return;
-  if (msg.type === 'ping') {
-    const log = $('pvp-test-log');
-    if (log) {
-      const line = document.createElement('div');
-      line.textContent = '◀ ' + (msg.text || 'ping');
-      log.appendChild(line);
-      log.scrollTop = log.scrollHeight;
-    }
-  }
+  if (!msg || !msg.type) return;
+  // Dispatch to PvP protocol handler if active
+  PvP.handleMessage(msg);
 }
 
 function pvpSendTestPing() {
+  // Kept for backwards compat (test screen), no longer used in main flow
   const ok = Net.send({
     type: 'ping',
     text: 'hello from ' + (Net.getRole() || '?') + ' @ ' + new Date().toLocaleTimeString()
@@ -2102,6 +2231,638 @@ function pvpSendTestPing() {
     }
   }
 }
+
+// ============================================================
+// PvP — Game protocol on top of Net
+// ============================================================
+// Manages the handshake, deck commit-reveal, split commit-reveal, and overall
+// flow synchronization with the opponent over Firebase.
+//
+// Message types exchanged (over Net.send):
+//   host → guest:
+//     'hello'         { name, config }       — host's name + game config
+//     'deck-commit'   { round, hash }        — host's seed commit for this round
+//     'deck-seed'     { round, seed }        — host's seed reveal
+//     'split-commit'  { round, hash }        — host's split commit
+//     'split'         { round, split }       — host's split reveal
+//     'next-round'    {}                     — signal to start next round
+//     'end-game'      {}                     — signal to end the game
+//   guest → host:
+//     'hello-ack'     { name }               — guest's name
+//     'deck-commit'   { round, hash }
+//     'deck-seed'     { round, seed }
+//     'split-commit'  { round, hash }
+//     'split'         { round, split }
+//
+// Round state machine:
+//   1. Both sides have hellos exchanged → ready
+//   2. New round begins → both generate seed, send deck-commit
+//   3. After receiving opponent's deck-commit → send deck-seed
+//   4. After receiving opponent's deck-seed → verify, shuffle deck, deal cards
+//   5. Each side composes their split (UI)
+//   6. On confirm → send split-commit
+//   7. After receiving opponent's split-commit → send split
+//   8. After receiving opponent's split → verify, then reveal both sides
+//   9. Show result → continue to next round on host's button click
+
+const PvP = (() => {
+  let myName = null;
+  let oppName = null;
+  let isHost = false;
+  let active = false;       // True if a PvP game is currently running
+  let config = null;        // The shared game config (variant, bonus, point value)
+  let round = 0;
+  // Per-round state
+  let mySeed = null;
+  let myCommit = null;
+  let oppCommit = null;
+  let oppSeed = null;
+  let deck = null;
+  let myHand = null;
+  let mySplit = null;
+  let mySplitCommit = null;
+  let oppSplitCommit = null;
+  let oppSplit = null;
+  // Cumulative
+  let myCash = 0;
+  let oppCash = 0;
+  let history = [];
+
+  function setMyName(name) { myName = name; }
+  function getMyName() { return myName; }
+  function getOppName() { return oppName; }
+  function isActive() { return active; }
+
+  function dlog(s) { console.log('[PvP]', s); }
+
+  function reset() {
+    active = false;
+    config = null; round = 0;
+    mySeed = myCommit = oppCommit = oppSeed = null;
+    deck = myHand = mySplit = mySplitCommit = oppSplitCommit = oppSplit = null;
+    myCash = oppCash = 0;
+    history = [];
+    oppName = null;
+  }
+
+  // -------- Handshake --------
+  async function startHandshake() {
+    isHost = (Net.getRole() === 'host');
+    if (isHost) {
+      // Host sends hello first with config
+      const cfg = readConfig();
+      config = {
+        variant: State.variant || 5,
+        pointValue: cfg.pointValue,
+        timerSec: cfg.timerSec,
+        two: cfg.two,
+        three: cfg.three
+      };
+      dlog('host sending hello');
+      Net.send({ type: 'hello', name: myName, config });
+      // Wait for hello-ack from guest
+      showHandshakeWaiting();
+    } else {
+      // Guest waits for hello from host
+      dlog('guest waiting for hello');
+      showHandshakeWaiting();
+    }
+  }
+
+  function showHandshakeWaiting() {
+    // Just show a basic "syncing" screen using the test screen template
+    switchScreen('screen-pvp-test');
+    $('pvp-test-role').textContent = isHost ? 'HOST' : 'GUEST';
+    $('pvp-test-status').className = 'connection-status';
+    $('pvp-test-status').innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.handshake'));
+    $('pvp-test-log').innerHTML = '';
+    // Hide test buttons
+    const allBtns = document.querySelectorAll('#screen-pvp-test .btn');
+    allBtns.forEach(b => {
+      if (b.textContent.includes(t('pvp.test.send')) || b.textContent === t('pvp.test.send')) b.style.display = 'none';
+    });
+  }
+
+  function onHandshakeComplete() {
+    active = true;
+    round = 0;
+    myCash = 0;
+    oppCash = 0;
+    history = [];
+
+    // Update local State to mirror config
+    State.variant = config.variant;
+    State.config = Object.freeze({
+      pointValue: config.pointValue,
+      timerSec: config.timerSec,
+      two: Object.freeze(config.two),
+      three: Object.freeze(config.three)
+    });
+    // Set player names: index 0 = me, index 1 = opponent
+    State.players = [
+      { name: myName, cash: 0 },
+      { name: oppName, cash: 0 }
+    ];
+    State.round = 0;
+    State.history = [];
+    State.phase = 'ready';
+
+    // Switch to game screen and start round flow
+    $('p1-label').textContent = myName;
+    $('p2-label').textContent = oppName;
+    $('p1-cash').textContent = '0';
+    $('p2-cash').textContent = '0';
+    $('p1-board').classList.remove('winner');
+    $('p2-board').classList.remove('winner');
+    switchScreen('screen-game');
+    window.scrollTo(0, 0);
+    showPvPReadyForRound();
+  }
+
+  // -------- Round flow --------
+  function showPvPReadyForRound() {
+    const gc = $('game-content');
+    gc.innerHTML = '';
+    const intro = document.createElement('div');
+    intro.className = 'privacy';
+    const seal = document.createElement('div'); seal.className = 'seal'; seal.textContent = '🃏';
+    const h = document.createElement('h2');
+    h.textContent = round === 0 ? t('ready.title') : t('ready.next') + ' ' + (round + 1);
+    const p = document.createElement('p');
+    p.textContent = isHost ? t('ready.text') : t('ready.textN');
+    intro.append(seal, h, p);
+    gc.appendChild(intro);
+
+    const act = $('action-area');
+    act.innerHTML = '';
+    if (isHost) {
+      // Only the host triggers the next round (sends 'next-round' message)
+      const btn = document.createElement('button');
+      btn.className = 'btn';
+      btn.textContent = t('ready.deal');
+      btn.onclick = () => { Net.send({ type: 'next-round' }); beginRoundPvP(); };
+      act.appendChild(btn);
+    } else {
+      const wait = document.createElement('div');
+      wait.className = 'connection-status';
+      wait.style.margin = '20px auto';
+      wait.style.display = 'block';
+      wait.style.width = 'fit-content';
+      wait.innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.waiting.opponent'));
+      act.appendChild(wait);
+    }
+  }
+
+  async function beginRoundPvP() {
+    round += 1;
+    State.round = round;
+    $('round-info').textContent = t('reveal.round') + ' ' + round;
+    $('p1-board').classList.remove('winner');
+    $('p2-board').classList.remove('winner');
+
+    // Reset round state
+    mySeed = CryptoHelpers.randomSeed();
+    myCommit = await CryptoHelpers.sha256(mySeed);
+    oppCommit = null;
+    oppSeed = null;
+    deck = null;
+    myHand = null;
+    mySplit = null;
+    mySplitCommit = null;
+    oppSplitCommit = null;
+    oppSplit = null;
+
+    dlog('round ' + round + ': sending deck-commit');
+    Net.send({ type: 'deck-commit', round, hash: myCommit });
+
+    showRoundWaiting(t('pvp.waiting.commit'));
+
+    // If opponent already sent us their commit (race), tryProgress will pick it up
+    tryProgressDeck();
+  }
+
+  function showRoundWaiting(text) {
+    const gc = $('game-content');
+    gc.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'privacy';
+    const seal = document.createElement('div'); seal.className = 'seal'; seal.textContent = '⏳';
+    const h = document.createElement('h2'); h.textContent = t('pvp.handshake');
+    const p = document.createElement('p'); p.textContent = text;
+    wrap.append(seal, h, p);
+    gc.appendChild(wrap);
+    $('action-area').innerHTML = '';
+  }
+
+  async function tryProgressDeck() {
+    // Both sides need: have sent our commit (myCommit set), received opp commit (oppCommit set)
+    if (myCommit && oppCommit && !oppSeed) {
+      // We can now reveal our seed
+      dlog('round ' + round + ': sending deck-seed');
+      Net.send({ type: 'deck-seed', round, seed: mySeed });
+      showRoundWaiting(t('pvp.waiting.reveal'));
+    }
+    if (myCommit && oppCommit && mySeed && oppSeed && !deck) {
+      // Both seeds revealed — verify and build deck
+      const checkHash = await CryptoHelpers.sha256(oppSeed);
+      if (checkHash !== oppCommit) {
+        showCheatDetected();
+        return;
+      }
+      // Combine seeds — order: host seed first, then guest seed (deterministic)
+      const combinedSeed = isHost
+        ? await CryptoHelpers.sha256(mySeed + ':' + oppSeed)
+        : await CryptoHelpers.sha256(oppSeed + ':' + mySeed);
+      // Shuffle deck with the PRNG
+      const prng = CryptoHelpers.makePRNG(combinedSeed);
+      deck = await prng.shuffle(freshDeck());
+      // Distribute: host gets first N cards, guest gets next N
+      const n = State.variant;
+      myHand = isHost ? deck.slice(0, n) : deck.slice(n, 2 * n);
+      // Now show compose screen for my own hand
+      showComposePvP();
+    }
+  }
+
+  function showCheatDetected() {
+    const gc = $('game-content');
+    gc.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'privacy';
+    const seal = document.createElement('div'); seal.className = 'seal';
+    seal.style.background = 'radial-gradient(circle, #c63838, #7a1f1f)';
+    seal.textContent = '⚠';
+    const h = document.createElement('h2'); h.textContent = t('pvp.cheat.detected');
+    h.style.color = '#f08c8c';
+    const p = document.createElement('p'); p.textContent = t('pvp.cheat.text');
+    wrap.append(seal, h, p);
+    gc.appendChild(wrap);
+    $('action-area').innerHTML = '';
+    // Allow continuing to next round (or aborting)
+    const act = $('action-area');
+    if (isHost) {
+      const btn = document.createElement('button');
+      btn.className = 'btn';
+      btn.textContent = t('reveal.next');
+      btn.onclick = () => {
+        Net.send({ type: 'next-round' });
+        showPvPReadyForRound();
+      };
+      act.appendChild(btn);
+    }
+  }
+
+  // -------- Compose phase (PvP version) --------
+  // Reuses the same UI as local mode but on a single player's hand,
+  // and on confirm sends commit + split to opponent.
+  function showComposePvP() {
+    const isV8 = State.variant === 8;
+    const cards = myHand.slice();
+    const slotTop = [];
+    const slotMid = [];
+    const slotBot = [];
+    const handCards = cards.slice();
+
+    const gc = $('game-content');
+    gc.innerHTML = '';
+
+    const banner = document.createElement('div');
+    banner.className = 'compose-banner';
+    const who = document.createElement('div'); who.className = 'who'; who.textContent = myName;
+    const what = document.createElement('div'); what.className = 'what';
+    what.textContent = isV8 ? t('compose.what8') : t('compose.what');
+    banner.append(who, what);
+    let timerEl = null;
+    if (State.config.timerSec > 0) {
+      timerEl = document.createElement('div'); timerEl.className = 'timer';
+      timerEl.textContent = State.config.timerSec + 's';
+      banner.appendChild(timerEl);
+    }
+    gc.appendChild(banner);
+
+    const hint = document.createElement('div'); hint.className = 'compose-hint';
+    hint.textContent = isV8 ? t('compose.hint8') : t('compose.hint');
+    gc.appendChild(hint);
+
+    function buildSlot(labelKey, target) {
+      const el = document.createElement('div'); el.className = 'slot';
+      const title = document.createElement('div'); title.className = 'slot-title';
+      const span = document.createElement('span'); span.textContent = t(labelKey) + ' ';
+      const count = document.createElement('span'); count.className = 'count';
+      count.textContent = '(0/' + target + ')';
+      title.append(span, count);
+      const row = document.createElement('div'); row.className = 'cards-row';
+      el.append(title, row);
+      return { el, row, count, target };
+    }
+
+    const sTop = buildSlot('compose.top', 2);
+    gc.appendChild(sTop.el);
+    let sMid = null;
+    if (isV8) {
+      sMid = buildSlot('compose.mid', 3);
+      gc.appendChild(sMid.el);
+    }
+    const sBot = buildSlot('compose.bot', 3);
+    gc.appendChild(sBot.el);
+
+    const handLabel = document.createElement('div');
+    handLabel.className = 'slot-title';
+    handLabel.style.marginTop = '16px';
+    handLabel.textContent = t('compose.hand');
+    gc.appendChild(handLabel);
+
+    const handRow = document.createElement('div'); handRow.className = 'hand-row';
+    gc.appendChild(handRow);
+
+    const act = $('action-area');
+    act.innerHTML = '';
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'btn'; confirmBtn.textContent = t('compose.confirm');
+    confirmBtn.disabled = true;
+    confirmBtn.onclick = async () => {
+      // Lock the split, send commit + value
+      const split = isV8
+        ? { top: cardsToIds(slotTop), mid: cardsToIds(slotMid), bot: cardsToIds(slotBot) }
+        : { top: cardsToIds(slotTop), bot: cardsToIds(slotBot) };
+      mySplit = split;
+      mySplitCommit = await CryptoHelpers.sha256(CryptoHelpers.stableJSON(split));
+      dlog('sending split-commit');
+      Net.send({ type: 'split-commit', round, hash: mySplitCommit });
+      showRoundWaiting(t('pvp.you.committed'));
+      tryProgressSplit();
+    };
+    act.appendChild(confirmBtn);
+
+    function render() {
+      sTop.row.innerHTML = ''; sBot.row.innerHTML = ''; handRow.innerHTML = '';
+      if (sMid) sMid.row.innerHTML = '';
+      slotTop.forEach(c => {
+        const el = cardEl(c); el.onclick = () => removeFrom('top', c); sTop.row.appendChild(el);
+      });
+      if (isV8) slotMid.forEach(c => {
+        const el = cardEl(c); el.onclick = () => removeFrom('mid', c); sMid.row.appendChild(el);
+      });
+      slotBot.forEach(c => {
+        const el = cardEl(c); el.onclick = () => removeFrom('bot', c); sBot.row.appendChild(el);
+      });
+      handCards.forEach((c, i) => {
+        const el = cardEl(c, { dealt: true, delay: i * 50 });
+        el.onclick = () => addCard(c);
+        handRow.appendChild(el);
+      });
+      sTop.count.textContent = '(' + slotTop.length + '/2)';
+      sBot.count.textContent = '(' + slotBot.length + '/3)';
+      if (sMid) sMid.count.textContent = '(' + slotMid.length + '/3)';
+      sTop.el.classList.toggle('ready', slotTop.length === 2);
+      sBot.el.classList.toggle('ready', slotBot.length === 3);
+      if (sMid) sMid.el.classList.toggle('ready', slotMid.length === 3);
+      if (slotTop.length === 0) { const e = document.createElement('div'); e.className = 'empty-hint'; e.textContent = t('compose.empty'); sTop.row.appendChild(e); }
+      if (sMid && slotMid.length === 0) { const e = document.createElement('div'); e.className = 'empty-hint'; e.textContent = t('compose.empty'); sMid.row.appendChild(e); }
+      if (slotBot.length === 0) { const e = document.createElement('div'); e.className = 'empty-hint'; e.textContent = t('compose.empty'); sBot.row.appendChild(e); }
+      const ok = isV8
+        ? (slotTop.length === 2 && slotMid.length === 3 && slotBot.length === 3)
+        : (slotTop.length === 2 && slotBot.length === 3);
+      confirmBtn.disabled = !ok;
+    }
+    function addCard(c) {
+      if (slotTop.length < 2) slotTop.push(c);
+      else if (isV8 && slotMid.length < 3) slotMid.push(c);
+      else if (slotBot.length < 3) slotBot.push(c);
+      else return;
+      const i = handCards.indexOf(c);
+      if (i >= 0) handCards.splice(i, 1);
+      render();
+    }
+    function removeFrom(where, c) {
+      const arr = where === 'top' ? slotTop : where === 'mid' ? slotMid : slotBot;
+      const i = arr.indexOf(c);
+      if (i >= 0) { arr.splice(i, 1); handCards.push(c); render(); }
+    }
+    render();
+
+    if (State.config.timerSec > 0) {
+      let remaining = State.config.timerSec;
+      if (State.timer) clearInterval(State.timer);
+      State.timer = setInterval(async () => {
+        remaining -= 1;
+        if (remaining <= 0) {
+          clearInterval(State.timer); State.timer = null;
+          // Auto-fill remaining slots from hand
+          while (slotTop.length < 2 && handCards.length > 0) slotTop.push(handCards.shift());
+          if (isV8) { while (slotMid.length < 3 && handCards.length > 0) slotMid.push(handCards.shift()); }
+          while (slotBot.length < 3 && handCards.length > 0) slotBot.push(handCards.shift());
+          // Auto-commit
+          const split = isV8
+            ? { top: cardsToIds(slotTop), mid: cardsToIds(slotMid), bot: cardsToIds(slotBot) }
+            : { top: cardsToIds(slotTop), bot: cardsToIds(slotBot) };
+          mySplit = split;
+          mySplitCommit = await CryptoHelpers.sha256(CryptoHelpers.stableJSON(split));
+          Net.send({ type: 'split-commit', round, hash: mySplitCommit });
+          showRoundWaiting(t('pvp.you.committed'));
+          tryProgressSplit();
+          return;
+        }
+        timerEl.textContent = remaining + 's';
+        if (remaining <= 5) timerEl.classList.add('urgent');
+      }, 1000);
+    }
+  }
+
+  // Convert card objects to their ids (compact transport format)
+  function cardsToIds(cards) { return cards.map(c => c.id); }
+  // Convert ids back to card objects, using the deck for this round
+  function idsToCards(ids) {
+    if (!deck) return [];
+    return ids.map(id => deck.find(c => c.id === id)).filter(Boolean);
+  }
+
+  async function tryProgressSplit() {
+    if (mySplitCommit && oppSplitCommit && mySplit && !oppSplit) {
+      // We've received opp's commit, sent ours, sent our split — wait for opp split
+      dlog('sending split');
+      Net.send({ type: 'split', round, split: mySplit });
+    }
+    if (mySplit && oppSplit && oppSplitCommit) {
+      // Verify opp's split matches their commit
+      const checkHash = await CryptoHelpers.sha256(CryptoHelpers.stableJSON(oppSplit));
+      if (checkHash !== oppSplitCommit) {
+        showCheatDetected();
+        return;
+      }
+      // All good — reveal & score
+      doRevealPvP();
+    }
+  }
+
+  // Reuses the existing reveal logic but with PvP hands
+  function doRevealPvP() {
+    if (State.timer) { clearInterval(State.timer); State.timer = null; }
+    const cfg = State.config;
+    const isV8 = State.variant === 8;
+
+    // Reconstruct splits as Card objects (resolve ids → cards)
+    const mySplitCards = isV8
+      ? { top: idsToCards(mySplit.top), mid: idsToCards(mySplit.mid), bot: idsToCards(mySplit.bot) }
+      : { top: idsToCards(mySplit.top), bot: idsToCards(mySplit.bot) };
+    const oppSplitCards = isV8
+      ? { top: idsToCards(oppSplit.top), mid: idsToCards(oppSplit.mid), bot: idsToCards(oppSplit.bot) }
+      : { top: idsToCards(oppSplit.top), bot: idsToCards(oppSplit.bot) };
+
+    // Sanity: each split must have correct sizes and refer to my-hand/opp-hand cards only.
+    // For now, we trust the resolution (if cards are missing, we'd see undefined and crash;
+    // could be hardened later).
+
+    // Player 0 = me, player 1 = opp. Place splits in State.splits accordingly.
+    State.splits = [
+      isV8
+        ? { top: Object.freeze(mySplitCards.top), mid: Object.freeze(mySplitCards.mid), bot: Object.freeze(mySplitCards.bot) }
+        : { top: Object.freeze(mySplitCards.top), bot: Object.freeze(mySplitCards.bot) },
+      isV8
+        ? { top: Object.freeze(oppSplitCards.top), mid: Object.freeze(oppSplitCards.mid), bot: Object.freeze(oppSplitCards.bot) }
+        : { top: Object.freeze(oppSplitCards.top), bot: Object.freeze(oppSplitCards.bot) }
+    ];
+    State.timeoutFlag = [false, false];
+    State.players = [
+      { name: myName, cash: myCash },
+      { name: oppName, cash: oppCash }
+    ];
+
+    // Call the existing reveal() that knows how to do all the scoring & history
+    reveal();
+
+    // After reveal, sync our cumulative cash from State (reveal updated it)
+    myCash = State.players[0].cash;
+    oppCash = State.players[1].cash;
+
+    // Override the "next round" button: in PvP only the host can trigger
+    const act = $('action-area');
+    act.innerHTML = '';
+    if (isHost) {
+      const btn = document.createElement('button'); btn.className = 'btn';
+      btn.textContent = t('reveal.next');
+      btn.onclick = () => {
+        Net.send({ type: 'next-round' });
+        showPvPReadyForRound();
+      };
+      act.appendChild(btn);
+    } else {
+      const wait = document.createElement('div');
+      wait.className = 'connection-status';
+      wait.style.margin = '20px auto';
+      wait.style.display = 'block';
+      wait.style.width = 'fit-content';
+      wait.innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.waiting.opponent'));
+      act.appendChild(wait);
+    }
+  }
+
+  // -------- Message dispatcher --------
+  function handleMessage(msg) {
+    if (!msg || !msg.type) return;
+    switch (msg.type) {
+      case 'hello':
+        if (!isHost) {
+          // Guest receives the host's hello
+          oppName = msg.name || 'Host';
+          config = msg.config;
+          dlog('guest received hello from ' + oppName);
+          Net.send({ type: 'hello-ack', name: myName });
+          onHandshakeComplete();
+        }
+        break;
+      case 'hello-ack':
+        if (isHost) {
+          oppName = msg.name || 'Guest';
+          dlog('host received hello-ack from ' + oppName);
+          onHandshakeComplete();
+        }
+        break;
+      case 'next-round':
+        if (!isHost) {
+          dlog('guest received next-round signal');
+          beginRoundPvP();
+        }
+        break;
+      case 'deck-commit':
+        if (msg.round !== round) { dlog('stale deck-commit (round ' + msg.round + ' vs ' + round + ')'); return; }
+        oppCommit = msg.hash;
+        tryProgressDeck();
+        break;
+      case 'deck-seed':
+        if (msg.round !== round) { dlog('stale deck-seed'); return; }
+        oppSeed = msg.seed;
+        tryProgressDeck();
+        break;
+      case 'split-commit':
+        if (msg.round !== round) { dlog('stale split-commit'); return; }
+        oppSplitCommit = msg.hash;
+        tryProgressSplit();
+        break;
+      case 'split':
+        if (msg.round !== round) { dlog('stale split'); return; }
+        oppSplit = msg.split;
+        tryProgressSplit();
+        break;
+      default:
+        dlog('unknown message type: ' + msg.type);
+    }
+  }
+
+  function onOpponentLeft() {
+    if (!active) return;
+    // Show a banner; if mid-round, abort
+    const gc = $('game-content');
+    if (gc) {
+      gc.innerHTML = '';
+      const wrap = document.createElement('div');
+      wrap.className = 'privacy';
+      const seal = document.createElement('div'); seal.className = 'seal';
+      seal.style.background = 'radial-gradient(circle, #c63838, #7a1f1f)';
+      seal.textContent = '⚠';
+      const h = document.createElement('h2'); h.textContent = t('pvp.opponentLeft');
+      h.style.color = '#f08c8c';
+      wrap.append(seal, h);
+      gc.appendChild(wrap);
+    }
+    if ($('action-area')) {
+      $('action-area').innerHTML = '';
+      const btn = document.createElement('button');
+      btn.className = 'btn'; btn.textContent = t('pvp.choose.back');
+      btn.onclick = () => {
+        reset();
+        pvpBackToSetup();
+      };
+      $('action-area').appendChild(btn);
+    }
+    active = false;
+  }
+
+  return {
+    setMyName, getMyName, getOppName,
+    isActive,
+    startHandshake,
+    handleMessage,
+    onOpponentLeft,
+    reset
+  };
+})();
+
+// Hook up disconnect handler: when in active PvP and opponent disconnects, abort.
+const _origHandleHost = handleNetStateHost;
+handleNetStateHost = function(state) {
+  _origHandleHost(state);
+  if (state === 'disconnected' && PvP.isActive()) {
+    PvP.onOpponentLeft();
+  }
+};
+const _origHandleGuest = handleNetStateGuest;
+handleNetStateGuest = function(state) {
+  _origHandleGuest(state);
+  if (state === 'disconnected' && PvP.isActive()) {
+    PvP.onOpponentLeft();
+  }
+};
 
 // ============================================================
 // GAME FLOW
