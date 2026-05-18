@@ -508,6 +508,26 @@
     cursor: pointer; margin-top: 8px;
   }
   .copy-btn.copied { background: var(--gold); color: var(--bg-deep); }
+
+  .debug-log {
+    background: #0a0500; border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px;
+    font-family: var(--mono); font-size: 11px;
+    color: #6fcf6f; text-align: left;
+    max-height: 180px; overflow-y: auto;
+    margin-top: 14px; line-height: 1.4;
+    word-break: break-word;
+  }
+  .debug-log .debug-title {
+    color: var(--gold); font-family: var(--display);
+    font-size: 10px; letter-spacing: 1.5px;
+    margin-bottom: 6px; opacity: .7;
+  }
+  .debug-log .line {
+    padding: 1px 0;
+  }
+  .debug-log .line.err { color: #ff6b6b; }
+  .debug-log .line.warn { color: #ffb86b; }
 </style>
 </head>
 <body>
@@ -677,6 +697,9 @@
       <button class="copy-btn" id="host-copy-btn" onclick="pvpCopyCode()" data-i18n="pvp.host.copy">Copier le code</button>
     </div>
     <div id="pvp-host-status" class="connection-status"></div>
+    <div class="debug-log" id="pvp-host-debug">
+      <div class="debug-title">▶ Debug log</div>
+    </div>
     <button class="btn secondary" onclick="pvpCancel()" data-i18n="pvp.choose.back" style="margin-top:14px">← Retour</button>
   </div>
 </div>
@@ -692,6 +715,9 @@
     </div>
     <button class="btn" onclick="pvpGuestConnect()" data-i18n="pvp.guest.connect">Se connecter</button>
     <div id="pvp-guest-status" class="connection-status" style="margin-top:14px"></div>
+    <div class="debug-log" id="pvp-guest-debug">
+      <div class="debug-title">▶ Debug log</div>
+    </div>
     <button class="btn secondary" onclick="pvpCancel()" data-i18n="pvp.choose.back" style="margin-top:14px">← Retour</button>
   </div>
 </div>
@@ -1502,15 +1528,33 @@ function formatMoney(n) {
 // PeerJS users on the public broker. Shown to the user as 6 alphanumeric uppercase chars.
 
 const Net = (() => {
-  const PREFIX = 'pokr-';        // peer id prefix to namespace ourselves on the broker
-  const CODE_LEN = 6;            // visible code length
-  const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // avoid 0/O/1/I confusion
+  const PREFIX = 'pokr-';
+  const CODE_LEN = 6;
+  const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const OPEN_TIMEOUT = 30000;   // longer timeout to be safe on slow networks
+
+  // Public ICE servers to help NAT traversal across different networks (4G/Wifi)
+  const ICE_SERVERS = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    // Open Relay public TURN — free community TURN servers
+    { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+  ];
+
+  const PEER_OPTIONS = {
+    debug: 2,
+    config: { iceServers: ICE_SERVERS }
+  };
 
   let peer = null;
-  let conn = null;               // DataConnection (the open data channel)
-  let role = null;               // 'host' | 'guest'
+  let conn = null;
+  let role = null;
   let onMessage = null;
   let onStateChange = null;
+  let onDebugLog = null;
   let myCode = null;
 
   function randomCode() {
@@ -1521,157 +1565,177 @@ const Net = (() => {
     return s;
   }
 
+  function dbg(line) {
+    const stamp = new Date().toLocaleTimeString();
+    console.log('[Net]', line);
+    if (onDebugLog) onDebugLog('[' + stamp + '] ' + line);
+  }
+
   function emitState(state) {
-    console.log('[Net]', state);
+    dbg('state → ' + state);
     if (onStateChange) onStateChange(state);
   }
 
-  // Sets up the data connection event handlers (called on both sides once we have conn)
   function bindConn(c) {
     conn = c;
-    conn.on('open', () => emitState('open'));
+    dbg('binding data connection');
+    conn.on('open', () => { dbg('data channel OPEN'); emitState('open'); });
     conn.on('data', (data) => {
       let msg = data;
       if (typeof data === 'string') {
-        try { msg = JSON.parse(data); } catch (e) { return; }
+        try { msg = JSON.parse(data); } catch (e) { dbg('bad json received'); return; }
       }
+      dbg('msg received: ' + (msg.type || '?'));
       if (onMessage) onMessage(msg);
     });
-    conn.on('close', () => { emitState('closed'); });
+    conn.on('close', () => { dbg('data channel CLOSED'); emitState('closed'); });
     conn.on('error', (err) => {
-      console.error('[Net] conn error', err);
+      dbg('data channel ERROR: ' + (err && (err.type || err.message) || err));
       emitState('error');
     });
   }
 
-  // Host: create a Peer with our chosen id (PREFIX + code).
-  // Returns a promise resolving to the 6-char code that the host shares with guest.
   function hostCreate() {
     return new Promise((resolve, reject) => {
       if (typeof Peer === 'undefined') {
+        dbg('ERROR: PeerJS not loaded');
         reject(new Error('PeerJS not loaded'));
         return;
       }
       role = 'host';
       const code = randomCode();
       const peerId = PREFIX + code;
+      dbg('creating peer with id: ' + peerId);
       try {
-        peer = new Peer(peerId, { debug: 1 });
+        peer = new Peer(peerId, PEER_OPTIONS);
       } catch (e) {
-        reject(e);
-        return;
+        dbg('Peer ctor threw: ' + e.message);
+        reject(e); return;
       }
       let resolved = false;
       const tOut = setTimeout(() => {
         if (!resolved) {
           resolved = true;
+          dbg('TIMEOUT after ' + OPEN_TIMEOUT + 'ms');
           reject(new Error('PeerJS open timeout'));
         }
-      }, 15000);
+      }, OPEN_TIMEOUT);
       peer.on('open', (id) => {
         if (resolved) return;
         resolved = true;
         clearTimeout(tOut);
         myCode = code;
+        dbg('peer OPEN, id=' + id);
         emitState('peer-open');
         resolve(code);
       });
       peer.on('connection', (c) => {
-        // Guest is connecting
+        dbg('incoming connection from guest');
         emitState('peer-incoming');
         bindConn(c);
       });
       peer.on('error', (err) => {
-        console.error('[Net] peer error', err);
+        const errType = err && err.type ? err.type : 'unknown';
+        dbg('peer ERROR: type=' + errType + ' msg=' + (err && err.message || ''));
         if (!resolved) {
           resolved = true;
           clearTimeout(tOut);
           reject(err);
         } else {
-          emitState('peer-error');
+          emitState('peer-error:' + errType);
         }
       });
-      peer.on('disconnected', () => emitState('peer-disconnected'));
-      peer.on('close', () => emitState('peer-closed'));
+      peer.on('disconnected', () => { dbg('peer disconnected from broker'); emitState('peer-disconnected'); });
+      peer.on('close', () => { dbg('peer CLOSED'); emitState('peer-closed'); });
     });
   }
 
-  // Guest: connect to a host using their 6-char code.
-  // Returns a promise that resolves when the data channel opens.
   function guestConnect(code) {
     return new Promise((resolve, reject) => {
       if (typeof Peer === 'undefined') {
+        dbg('ERROR: PeerJS not loaded');
         reject(new Error('PeerJS not loaded'));
         return;
       }
       role = 'guest';
       code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (code.length !== CODE_LEN) {
+        dbg('invalid code length: ' + code.length);
         reject(new Error('Invalid code length'));
         return;
       }
+      dbg('creating guest peer (random id)');
       try {
-        // Use a random-id for our own peer instance (we don't need a static id as guest)
-        peer = new Peer({ debug: 1 });
+        peer = new Peer(PEER_OPTIONS);
       } catch (e) {
-        reject(e);
-        return;
+        dbg('Peer ctor threw: ' + e.message);
+        reject(e); return;
       }
       let resolved = false;
       const tOut = setTimeout(() => {
         if (!resolved) {
           resolved = true;
+          dbg('TIMEOUT after ' + OPEN_TIMEOUT + 'ms');
           reject(new Error('Connection timeout'));
         }
-      }, 15000);
-      peer.on('open', () => {
+      }, OPEN_TIMEOUT);
+      peer.on('open', (id) => {
+        dbg('guest peer OPEN, id=' + id);
         emitState('peer-open');
         const targetId = PREFIX + code;
+        dbg('connecting to ' + targetId);
         const c = peer.connect(targetId, { reliable: true });
+        if (!c) {
+          dbg('peer.connect returned null');
+          if (!resolved) { resolved = true; clearTimeout(tOut); reject(new Error('connect returned null')); }
+          return;
+        }
         bindConn(c);
         c.on('open', () => {
           if (resolved) return;
           resolved = true;
           clearTimeout(tOut);
+          dbg('guest data channel OPEN');
           resolve();
         });
         c.on('error', (err) => {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(tOut);
-            reject(err);
-          }
+          dbg('guest data channel error: ' + (err && err.message || err));
+          if (!resolved) { resolved = true; clearTimeout(tOut); reject(err); }
         });
       });
       peer.on('error', (err) => {
-        console.error('[Net] guest peer error', err);
+        const errType = err && err.type ? err.type : 'unknown';
+        dbg('guest peer ERROR: type=' + errType + ' msg=' + (err && err.message || ''));
         if (!resolved) {
           resolved = true;
           clearTimeout(tOut);
-          // PeerJS error.type === 'peer-unavailable' means the host's id doesn't exist
           reject(err);
         } else {
-          emitState('peer-error');
+          emitState('peer-error:' + errType);
         }
       });
+      peer.on('disconnected', () => { dbg('guest disconnected from broker'); });
+      peer.on('close', () => { dbg('guest peer CLOSED'); });
     });
   }
 
   function send(msg) {
     if (!conn || !conn.open) {
-      console.warn('[Net] cannot send, channel not open');
+      dbg('cannot send, channel not open');
       return false;
     }
     try {
       conn.send(JSON.stringify(msg));
+      dbg('msg sent: ' + (msg.type || '?'));
       return true;
     } catch (e) {
-      console.error('[Net] send failed', e);
+      dbg('send failed: ' + e.message);
       return false;
     }
   }
 
   function close() {
+    dbg('closing all');
     if (conn) { try { conn.close(); } catch (e) {} conn = null; }
     if (peer) { try { peer.destroy(); } catch (e) {} peer = null; }
     role = null;
@@ -1687,7 +1751,8 @@ const Net = (() => {
     send, close, isOpen,
     getRole, getCode,
     setOnMessage: (fn) => { onMessage = fn; },
-    setOnStateChange: (fn) => { onStateChange = fn; }
+    setOnStateChange: (fn) => { onStateChange = fn; },
+    setOnDebugLog: (fn) => { onDebugLog = fn; }
   };
 })();
 
@@ -1727,9 +1792,11 @@ async function pvpStartHost() {
   $('pvp-host-status').innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.host.generating'));
   $('host-copy-btn').classList.remove('copied');
   $('host-copy-btn').textContent = t('pvp.host.copy');
+  clearDebugLog('pvp-host-debug');
 
   Net.setOnStateChange(handleNetStateHost);
   Net.setOnMessage(handleNetMessage);
+  Net.setOnDebugLog((line) => appendDebugLog('pvp-host-debug', line));
 
   try {
     const code = await Net.hostCreate();
@@ -1738,6 +1805,7 @@ async function pvpStartHost() {
     $('pvp-host-status').innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.host.waiting'));
   } catch (e) {
     console.error('[PvP host] failed', e);
+    appendDebugLog('pvp-host-debug', '✗ FAILED: ' + (e && (e.type || e.message) || e), 'err');
     $('pvp-host-status').className = 'connection-status fail';
     $('pvp-host-status').textContent = t('pvp.peer.error');
   }
@@ -1771,10 +1839,12 @@ function pvpStartGuest() {
   $('guest-code-input').value = '';
   $('pvp-guest-status').className = 'connection-status';
   $('pvp-guest-status').textContent = '';
+  clearDebugLog('pvp-guest-debug');
   setTimeout(() => { try { $('guest-code-input').focus(); } catch(e){} }, 100);
 
   Net.setOnStateChange(handleNetStateGuest);
   Net.setOnMessage(handleNetMessage);
+  Net.setOnDebugLog((line) => appendDebugLog('pvp-guest-debug', line));
 }
 
 async function pvpGuestConnect() {
@@ -1788,17 +1858,35 @@ async function pvpGuestConnect() {
   $('pvp-guest-status').innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.connecting'));
   try {
     await Net.guestConnect(code);
-    // success → onStateChange('open') will fire and move to test screen
   } catch (e) {
     console.error('[PvP guest] failed', e);
+    const errType = e && e.type ? e.type : 'unknown';
+    appendDebugLog('pvp-guest-debug', '✗ FAILED: type=' + errType + ' msg=' + (e && e.message || ''), 'err');
     $('pvp-guest-status').className = 'connection-status fail';
-    if (e && e.type === 'peer-unavailable') {
+    if (errType === 'peer-unavailable') {
       $('pvp-guest-status').textContent = t('pvp.guest.invalid');
     } else {
       $('pvp-guest-status').textContent = t('pvp.failed');
     }
     Net.close();
   }
+}
+
+// ---- Debug log helpers ----
+function appendDebugLog(elId, line, kind) {
+  const el = $(elId);
+  if (!el) return;
+  const div = document.createElement('div');
+  div.className = 'line' + (kind ? ' ' + kind : '');
+  div.textContent = line;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+function clearDebugLog(elId) {
+  const el = $(elId);
+  if (!el) return;
+  el.innerHTML = '<div class="debug-title">▶ Debug log</div>';
 }
 
 function handleNetStateHost(state) {
