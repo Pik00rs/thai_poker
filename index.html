@@ -154,26 +154,30 @@
 
   .round-info { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 16px; letter-spacing: 1.5px; font-family: var(--mono); }
 
-  /* ============ NEW CARD DESIGN ============ */
+  /* ============ CARDS ============ */
   .card {
     width: 58px; height: 84px; border-radius: 8px;
     background:
       radial-gradient(circle at 30% 20%, #fffdf5 0%, #f5e7c8 60%, #e6d4a8 100%);
     border: 1px solid #8c6529;
     display: grid;
-    grid-template-columns: 1fr; grid-template-rows: auto 1fr auto;
-    padding: 5px 6px;
+    grid-template-columns: 1fr;
+    grid-template-rows: 16px 1fr 16px;
+    padding: 4px 5px;
     font-family: 'Georgia', 'Times New Roman', serif; font-weight: 700;
     box-shadow:
       0 4px 12px rgba(0,0,0,0.6),
       inset 0 1px 0 rgba(255,255,255,0.7),
       inset 0 -2px 4px rgba(140,101,41,0.15);
     position: relative;
-    cursor: pointer; user-select: none; -webkit-user-select: none;
+    cursor: grab;
+    user-select: none; -webkit-user-select: none;
     transition: transform .15s, box-shadow .15s;
     flex-shrink: 0;
     overflow: hidden;
+    touch-action: none;
   }
+  .card:active { cursor: grabbing; }
   .card::before {
     content: ''; position: absolute; inset: 2px;
     border: 1px solid rgba(140,101,41,0.2); border-radius: 6px;
@@ -188,30 +192,76 @@
     display: flex; flex-direction: column; align-items: center; line-height: 1;
     z-index: 2;
   }
-  .card .corner.tl { justify-self: start; }
-  .card .corner.br { justify-self: end; transform: rotate(180deg); align-self: end; }
-  .card .corner .rank-text { font-size: 13px; font-weight: 800; letter-spacing: -0.5px; }
-  .card .corner .suit-mini { font-size: 11px; margin-top: -1px; }
+  .card .corner.tl {
+    justify-self: start;
+    grid-row: 1;
+  }
+  .card .corner.br {
+    justify-self: end;
+    grid-row: 3;
+    align-self: end;
+    transform: rotate(180deg);
+  }
+  .card .corner .rank-text { font-size: 12px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
+  .card .corner .suit-mini { font-size: 10px; margin-top: -1px; line-height: 1; }
   .card .center-suit {
-    font-size: 26px; text-align: center; align-self: center; justify-self: center;
+    font-size: 32px;
+    text-align: center; align-self: center; justify-self: center;
+    grid-row: 2;
+    line-height: 1;
     text-shadow: 0 1px 2px rgba(0,0,0,0.1);
     z-index: 2;
   }
   .card .watermark {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 60px; opacity: 0.05; pointer-events: none;
+    font-size: 60px; opacity: 0.04; pointer-events: none;
     transform: rotate(-20deg);
   }
   .card.red { color: var(--red); }
   .card.black { color: #1a1a1a; }
   .card.selected { transform: translateY(-6px); box-shadow: 0 8px 16px rgba(212,160,86,0.5), 0 0 0 2px var(--gold); }
+  .card.dragging {
+    opacity: 0.5;
+    transform: scale(1.05);
+    box-shadow: 0 10px 24px rgba(212,160,86,0.7), 0 0 0 2px var(--gold-bright);
+    z-index: 1000;
+  }
+  .card.drop-target-hover {
+    transform: translateY(-4px);
+  }
 
-  .card.small { width: 38px; height: 56px; }
+  /* Compact mode for mobile in-game (saves vertical space) */
+  .card.compact {
+    width: 48px; height: 70px;
+    grid-template-rows: 14px 1fr 14px;
+  }
+  .card.compact .corner .rank-text { font-size: 11px; }
+  .card.compact .corner .suit-mini { font-size: 9px; }
+  .card.compact .center-suit { font-size: 26px; }
+
+  .card.small {
+    width: 38px; height: 56px;
+    grid-template-rows: 12px 1fr 12px;
+    padding: 3px 4px;
+  }
   .card.small .corner .rank-text { font-size: 10px; }
   .card.small .corner .suit-mini { font-size: 8px; }
-  .card.small .center-suit { font-size: 18px; }
+  .card.small .center-suit { font-size: 20px; }
   .card.small .watermark { font-size: 40px; }
+
+  /* Drop-target visual feedback */
+  .slot.drag-over {
+    border-color: var(--gold-bright);
+    background: linear-gradient(180deg, rgba(212,160,86,0.15), rgba(26,14,8,0.6));
+    box-shadow: 0 0 20px rgba(212,160,86,0.3);
+  }
+  .hand-row.drag-over {
+    background: rgba(212,160,86,0.06);
+    border-radius: 8px;
+  }
+  .card.shift-left { transform: translateX(-15px); transition: transform .2s; }
+  .card.shift-right { transform: translateX(15px); transition: transform .2s; }
 
   /* COMPOSE SCREEN */
   .compose-banner {
@@ -255,6 +305,28 @@
     text-align: center; color: var(--cream-soft); font-style: italic;
     font-size: 14px; margin: 12px 0; padding: 0 10px;
   }
+
+  /* Compact mode for in-game PvP — fits on a phone without scrolling */
+  .compact-compose .compose-banner {
+    padding: 8px 10px; margin-bottom: 6px;
+  }
+  .compact-compose .compose-banner .who { font-size: 14px; letter-spacing: 1.5px; }
+  .compact-compose .compose-banner .what { font-size: 12px; margin-top: 1px; }
+  .compact-compose .compose-banner .timer { font-size: 18px; padding: 2px 12px; margin-top: 3px; }
+  .compact-compose .compose-hint {
+    font-size: 12px; margin: 4px 0 6px; padding: 0 6px; line-height: 1.3;
+  }
+  .compact-compose .slot {
+    padding: 6px 8px; margin-bottom: 6px; min-height: 80px;
+  }
+  .compact-compose .slot .slot-title {
+    font-size: 10px; margin-bottom: 4px; letter-spacing: 1.5px;
+  }
+  .compact-compose .slot .cards-row,
+  .compact-compose .hand-row {
+    min-height: 72px; gap: 4px;
+  }
+  .compact-compose .slot .empty-hint { font-size: 11px; }
 
   /* PRIVACY SCREEN */
   .privacy { text-align: center; padding: 40px 20px; }
@@ -720,7 +792,89 @@
   </div>
 </div>
 
-<!-- ========== PvP : HOST ========== -->
+<!-- ========== PvP : HOST CONFIG ========== -->
+<div id="screen-pvp-host-config" class="screen">
+  <div class="header" style="padding: 16px 0 18px;">
+    <h1 data-i18n="pvp.host.title" style="font-size: 20px;">TU ES HÔTE</h1>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title" data-i18n="pvp.guest.yourName">Ton nom</div>
+    <div class="field-stack">
+      <input id="host-name-input" type="text" class="wide" maxlength="20" placeholder="...">
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title" data-i18n="setup.variant">Variante</div>
+    <div class="mode-row">
+      <button class="mode-btn active" id="host-variant-5" onclick="hostSetVariant(5)">
+        <span class="icon">🂡🂢</span>
+        <span data-i18n="setup.variant.5">5 cartes</span>
+        <span style="display:block;opacity:.7;font-size:9px;margin-top:2px" data-i18n="setup.variant.5.sub">2 + 3</span>
+      </button>
+      <button class="mode-btn" id="host-variant-8" onclick="hostSetVariant(8)">
+        <span class="icon">🂡🂢🂣</span>
+        <span data-i18n="setup.variant.8">8 cartes</span>
+        <span style="display:block;opacity:.7;font-size:9px;margin-top:2px" data-i18n="setup.variant.8.sub">2 + 3 + 3</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title" data-i18n="setup.round">Manche</div>
+    <div class="field">
+      <label data-i18n="setup.pointValue">Prix d'un point<small data-i18n="setup.pointValue.help">monnaie au choix</small></label>
+      <input id="host-cfg-point-value" type="number" min="0.01" step="0.01" value="1">
+    </div>
+    <div class="field">
+      <label data-i18n="setup.timer">Temps par joueur<small data-i18n="setup.timer.help">secondes, 0 = illimité</small></label>
+      <input id="host-cfg-timer" type="number" min="0" step="5" value="30">
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title" data-i18n="setup.bonus2">Bonus — 2 cartes</div>
+    <div class="preset-row">
+      <button class="preset-btn" onclick="hostApplyPreset('soft')">SOFT</button>
+      <button class="preset-btn" onclick="hostApplyPreset('standard')">STANDARD</button>
+      <button class="preset-btn" onclick="hostApplyPreset('wild')">WILD</button>
+    </div>
+    <div class="field">
+      <label data-i18n="combo.flush">Couleur<small data-i18n="setup.flush2.help">2 cartes même symbole</small></label>
+      <input id="host-cfg-2-flush" type="number" min="0" step="1" value="2">
+    </div>
+    <div class="field">
+      <label data-i18n="combo.straight">Suite<small data-i18n="setup.straight2.help">2 cartes consécutives</small></label>
+      <input id="host-cfg-2-straight" type="number" min="0" step="1" value="2">
+    </div>
+    <div class="field">
+      <label data-i18n="combo.straightFlush">Suite + couleur<small data-i18n="setup.sf2.help">le top du haut</small></label>
+      <input id="host-cfg-2-sf" type="number" min="0" step="1" value="3">
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title" data-i18n="setup.bonus3">Bonus — 3 cartes</div>
+    <div class="field">
+      <label data-i18n="combo.flush">Couleur<small data-i18n="setup.flush3.help">3 cartes même symbole, bat les points</small></label>
+      <input id="host-cfg-3-flush" type="number" min="0" step="1" value="3">
+    </div>
+    <div class="field">
+      <label data-i18n="combo.straight3">Tierce<small data-i18n="setup.straight3.help">3 consécutives, bat la couleur</small></label>
+      <input id="host-cfg-3-straight" type="number" min="0" step="1" value="3">
+    </div>
+    <div class="field">
+      <label data-i18n="combo.straightFlush3">Tierce + couleur<small data-i18n="setup.sf3.help">quasi imbattable</small></label>
+      <input id="host-cfg-3-sf" type="number" min="0" step="1" value="5">
+    </div>
+  </div>
+
+  <button class="btn" onclick="pvpHostCreate()" data-i18n="pvp.choose.host">Créer la partie</button>
+  <button class="btn secondary" onclick="pvpCancel()" data-i18n="pvp.choose.back" style="margin-top: 10px">← Retour</button>
+</div>
+
+<!-- ========== PvP : HOST WAITING ========== -->
 <div id="screen-pvp-host" class="screen">
   <div class="pvp-screen">
     <span class="pvp-role-badge" data-i18n="pvp.host.title">TU ES HÔTE</span>
@@ -812,8 +966,8 @@ window.dispatchEvent(new Event('fb-ready'));
 //
 // If both values are left empty, users will be prompted to enter their own keys.
 const FIREBASE_BUILTIN_CONFIG = {
-  apiKey:      "AIzaSyBIyYC7Xtsoan41BD21Xsnp_n-i7qlsBr0",  // ← paste your apiKey here, e.g. "AIzaSy..."
-  databaseURL: "https://thai-poks-default-rtdb.asia-southeast1.firebasedatabase.app"   // ← paste your databaseURL here, e.g. "https://xxx-default-rtdb.europe-west1.firebasedatabase.app"
+  apiKey:      "AIzaSyBIyYC7Xtsoan41BD21Xsnp_n-i7qlsBr0",
+  databaseURL: "https://thai-poks-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 // ============================================================
 
@@ -1638,7 +1792,10 @@ function escapeText(s) {
 // New refined card rendering with corners + center + watermark
 function cardEl(card, opts = {}) {
   const div = document.createElement('div');
-  div.className = 'card ' + card.color + (opts.small ? ' small' : '');
+  let cls = 'card ' + card.color;
+  if (opts.small) cls += ' small';
+  if (opts.compact) cls += ' compact';
+  div.className = cls;
   if (opts.dealt) div.classList.add('dealt');
   if (opts.delay) div.style.animationDelay = opts.delay + 'ms';
   div.dataset.id = card.id;
@@ -2007,7 +2164,7 @@ const Net = (() => {
 // PvP FLOW
 // ============================================================
 function switchScreen(id) {
-  const screens = ['screen-setup','screen-game','screen-pvp-config','screen-pvp-choose','screen-pvp-host','screen-pvp-guest','screen-pvp-test'];
+  const screens = ['screen-setup','screen-game','screen-pvp-config','screen-pvp-choose','screen-pvp-host-config','screen-pvp-host','screen-pvp-guest','screen-pvp-test'];
   screens.forEach(s => {
     const el = $(s);
     if (el) el.classList.toggle('active', s === id);
@@ -2094,10 +2251,68 @@ async function pvpSaveConfig() {
   }
 }
 
+// In-memory state for the host config screen (chosen before creating the room)
+let hostConfigVariant = 5;
+
+function hostSetVariant(n) {
+  if (n !== 5 && n !== 8) return;
+  hostConfigVariant = n;
+  $('host-variant-5').classList.toggle('active', n === 5);
+  $('host-variant-8').classList.toggle('active', n === 8);
+}
+
+function hostApplyPreset(kind) {
+  const p = {
+    soft:     { p2:[1,1,2], p3:[2,2,4] },
+    standard: { p2:[2,2,3], p3:[3,3,5] },
+    wild:     { p2:[3,3,5], p3:[4,5,8] }
+  }[kind];
+  if (!p) return;
+  $('host-cfg-2-flush').value = p.p2[0];
+  $('host-cfg-2-straight').value = p.p2[1];
+  $('host-cfg-2-sf').value = p.p2[2];
+  $('host-cfg-3-flush').value = p.p3[0];
+  $('host-cfg-3-straight').value = p.p3[1];
+  $('host-cfg-3-sf').value = p.p3[2];
+}
+
 async function pvpStartHost() {
-  // Use the host's name from the setup screen (p1-name)
-  const hostName = ($('p1-name').value || '').trim() || t('p1.default');
+  // Go to host config screen first; user enters name + config there, then creates the game
+  switchScreen('screen-pvp-host-config');
+  window.scrollTo(0, 0);
+  // Reset variant selection visual
+  hostSetVariant(hostConfigVariant);
+}
+
+async function pvpHostCreate() {
+  // Read host config and proceed to create the actual room
+  const hostName = ($('host-name-input').value || '').trim() || t('p1.default');
   PvP.setMyName(hostName);
+
+  // Build the config object from host-config inputs
+  const num = (id, def) => {
+    const v = parseFloat(document.getElementById(id).value);
+    return (isFinite(v) && v > 0) ? v : def;
+  };
+  const intP = (id, def) => {
+    const v = parseInt(document.getElementById(id).value, 10);
+    return (Number.isFinite(v) && v >= 0) ? v : def;
+  };
+  State.variant = hostConfigVariant;
+  State.config = Object.freeze({
+    pointValue: num('host-cfg-point-value', 1),
+    timerSec: intP('host-cfg-timer', 30),
+    two: Object.freeze({
+      flush:    intP('host-cfg-2-flush', 2),
+      straight: intP('host-cfg-2-straight', 2),
+      sf:       intP('host-cfg-2-sf', 3)
+    }),
+    three: Object.freeze({
+      flush:    intP('host-cfg-3-flush', 3),
+      straight: intP('host-cfg-3-straight', 3),
+      sf:       intP('host-cfg-3-sf', 5)
+    })
+  });
 
   switchScreen('screen-pvp-host');
   window.scrollTo(0, 0);
@@ -2343,14 +2558,14 @@ const PvP = (() => {
   async function startHandshake() {
     isHost = (Net.getRole() === 'host');
     if (isHost) {
-      // Host sends hello first with config
-      const cfg = readConfig();
+      // Use the config already built by pvpHostCreate from the host config screen
+      const cfg = State.config;
       config = {
         variant: State.variant || 5,
         pointValue: cfg.pointValue,
         timerSec: cfg.timerSec,
-        two: cfg.two,
-        three: cfg.three
+        two: { ...cfg.two },
+        three: { ...cfg.three }
       };
       dlog('host sending hello');
       Net.send({ type: 'hello', name: myName, config });
@@ -2557,160 +2772,27 @@ const PvP = (() => {
   }
 
   // -------- Compose phase (PvP version) --------
-  // Reuses the same UI as local mode but on a single player's hand,
-  // and on confirm sends commit + split to opponent.
   function showComposePvP() {
     const isV8 = State.variant === 8;
-    const cards = myHand.slice();
-    const slotTop = [];
-    const slotMid = [];
-    const slotBot = [];
-    const handCards = cards.slice();
-
-    const gc = $('game-content');
-    gc.innerHTML = '';
-
-    const banner = document.createElement('div');
-    banner.className = 'compose-banner';
-    const who = document.createElement('div'); who.className = 'who'; who.textContent = myName;
-    const what = document.createElement('div'); what.className = 'what';
-    what.textContent = isV8 ? t('compose.what8') : t('compose.what');
-    banner.append(who, what);
-    let timerEl = null;
-    if (State.config.timerSec > 0) {
-      timerEl = document.createElement('div'); timerEl.className = 'timer';
-      timerEl.textContent = State.config.timerSec + 's';
-      banner.appendChild(timerEl);
-    }
-    gc.appendChild(banner);
-
-    const hint = document.createElement('div'); hint.className = 'compose-hint';
-    hint.textContent = isV8 ? t('compose.hint8') : t('compose.hint');
-    gc.appendChild(hint);
-
-    function buildSlot(labelKey, target) {
-      const el = document.createElement('div'); el.className = 'slot';
-      const title = document.createElement('div'); title.className = 'slot-title';
-      const span = document.createElement('span'); span.textContent = t(labelKey) + ' ';
-      const count = document.createElement('span'); count.className = 'count';
-      count.textContent = '(0/' + target + ')';
-      title.append(span, count);
-      const row = document.createElement('div'); row.className = 'cards-row';
-      el.append(title, row);
-      return { el, row, count, target };
-    }
-
-    const sTop = buildSlot('compose.top', 2);
-    gc.appendChild(sTop.el);
-    let sMid = null;
-    if (isV8) {
-      sMid = buildSlot('compose.mid', 3);
-      gc.appendChild(sMid.el);
-    }
-    const sBot = buildSlot('compose.bot', 3);
-    gc.appendChild(sBot.el);
-
-    const handLabel = document.createElement('div');
-    handLabel.className = 'slot-title';
-    handLabel.style.marginTop = '16px';
-    handLabel.textContent = t('compose.hand');
-    gc.appendChild(handLabel);
-
-    const handRow = document.createElement('div'); handRow.className = 'hand-row';
-    gc.appendChild(handRow);
-
-    const act = $('action-area');
-    act.innerHTML = '';
-    const confirmBtn = document.createElement('button');
-    confirmBtn.className = 'btn'; confirmBtn.textContent = t('compose.confirm');
-    confirmBtn.disabled = true;
-    confirmBtn.onclick = async () => {
-      // Lock the split, send commit + value
-      const split = isV8
-        ? { top: cardsToIds(slotTop), mid: cardsToIds(slotMid), bot: cardsToIds(slotBot) }
-        : { top: cardsToIds(slotTop), bot: cardsToIds(slotBot) };
-      mySplit = split;
-      mySplitCommit = await CryptoHelpers.sha256(CryptoHelpers.stableJSON(split));
-      dlog('sending split-commit');
-      Net.send({ type: 'split-commit', round, hash: mySplitCommit });
-      showRoundWaiting(t('pvp.you.committed'));
-      tryProgressSplit();
-    };
-    act.appendChild(confirmBtn);
-
-    function render() {
-      sTop.row.innerHTML = ''; sBot.row.innerHTML = ''; handRow.innerHTML = '';
-      if (sMid) sMid.row.innerHTML = '';
-      slotTop.forEach(c => {
-        const el = cardEl(c); el.onclick = () => removeFrom('top', c); sTop.row.appendChild(el);
-      });
-      if (isV8) slotMid.forEach(c => {
-        const el = cardEl(c); el.onclick = () => removeFrom('mid', c); sMid.row.appendChild(el);
-      });
-      slotBot.forEach(c => {
-        const el = cardEl(c); el.onclick = () => removeFrom('bot', c); sBot.row.appendChild(el);
-      });
-      handCards.forEach((c, i) => {
-        const el = cardEl(c, { dealt: true, delay: i * 50 });
-        el.onclick = () => addCard(c);
-        handRow.appendChild(el);
-      });
-      sTop.count.textContent = '(' + slotTop.length + '/2)';
-      sBot.count.textContent = '(' + slotBot.length + '/3)';
-      if (sMid) sMid.count.textContent = '(' + slotMid.length + '/3)';
-      sTop.el.classList.toggle('ready', slotTop.length === 2);
-      sBot.el.classList.toggle('ready', slotBot.length === 3);
-      if (sMid) sMid.el.classList.toggle('ready', slotMid.length === 3);
-      if (slotTop.length === 0) { const e = document.createElement('div'); e.className = 'empty-hint'; e.textContent = t('compose.empty'); sTop.row.appendChild(e); }
-      if (sMid && slotMid.length === 0) { const e = document.createElement('div'); e.className = 'empty-hint'; e.textContent = t('compose.empty'); sMid.row.appendChild(e); }
-      if (slotBot.length === 0) { const e = document.createElement('div'); e.className = 'empty-hint'; e.textContent = t('compose.empty'); sBot.row.appendChild(e); }
-      const ok = isV8
-        ? (slotTop.length === 2 && slotMid.length === 3 && slotBot.length === 3)
-        : (slotTop.length === 2 && slotBot.length === 3);
-      confirmBtn.disabled = !ok;
-    }
-    function addCard(c) {
-      if (slotTop.length < 2) slotTop.push(c);
-      else if (isV8 && slotMid.length < 3) slotMid.push(c);
-      else if (slotBot.length < 3) slotBot.push(c);
-      else return;
-      const i = handCards.indexOf(c);
-      if (i >= 0) handCards.splice(i, 1);
-      render();
-    }
-    function removeFrom(where, c) {
-      const arr = where === 'top' ? slotTop : where === 'mid' ? slotMid : slotBot;
-      const i = arr.indexOf(c);
-      if (i >= 0) { arr.splice(i, 1); handCards.push(c); render(); }
-    }
-    render();
-
-    if (State.config.timerSec > 0) {
-      let remaining = State.config.timerSec;
-      if (State.timer) clearInterval(State.timer);
-      State.timer = setInterval(async () => {
-        remaining -= 1;
-        if (remaining <= 0) {
-          clearInterval(State.timer); State.timer = null;
-          // Auto-fill remaining slots from hand
-          while (slotTop.length < 2 && handCards.length > 0) slotTop.push(handCards.shift());
-          if (isV8) { while (slotMid.length < 3 && handCards.length > 0) slotMid.push(handCards.shift()); }
-          while (slotBot.length < 3 && handCards.length > 0) slotBot.push(handCards.shift());
-          // Auto-commit
-          const split = isV8
-            ? { top: cardsToIds(slotTop), mid: cardsToIds(slotMid), bot: cardsToIds(slotBot) }
-            : { top: cardsToIds(slotTop), bot: cardsToIds(slotBot) };
-          mySplit = split;
-          mySplitCommit = await CryptoHelpers.sha256(CryptoHelpers.stableJSON(split));
-          Net.send({ type: 'split-commit', round, hash: mySplitCommit });
-          showRoundWaiting(t('pvp.you.committed'));
-          tryProgressSplit();
-          return;
-        }
-        timerEl.textContent = remaining + 's';
-        if (remaining <= 5) timerEl.classList.add('urgent');
-      }, 1000);
-    }
+    startComposeUI({
+      variant: State.variant,
+      playerName: myName,
+      cards: myHand,
+      timerSec: State.config.timerSec,
+      showCompact: true,
+      onConfirm: async (slots, timedOut) => {
+        // Lock the split, send commit + value
+        const split = isV8
+          ? { top: cardsToIds(slots.top), mid: cardsToIds(slots.mid), bot: cardsToIds(slots.bot) }
+          : { top: cardsToIds(slots.top), bot: cardsToIds(slots.bot) };
+        mySplit = split;
+        mySplitCommit = await CryptoHelpers.sha256(CryptoHelpers.stableJSON(split));
+        dlog('sending split-commit' + (timedOut ? ' (auto/timeout)' : ''));
+        Net.send({ type: 'split-commit', round, hash: mySplitCommit });
+        showRoundWaiting(t('pvp.you.committed'));
+        tryProgressSplit();
+      }
+    });
   }
 
   // Convert card objects to their ids (compact transport format)
@@ -2941,13 +3023,410 @@ handleNetStateGuest = function(state) {
 };
 
 // ============================================================
-// GAME FLOW
+// UNIFIED COMPOSE UI with tap + drag & drop reordering
+// ============================================================
+// Used for both local pass-and-play and PvP modes.
+// opts: {
+//   variant: 5 | 8,
+//   playerName: string,
+//   cards: Card[],          // initial hand
+//   timerSec: number,        // 0 = no timer
+//   timerLabel: string,
+//   onConfirm: (slots, timedOut) => void,
+//                            // slots = { top: Card[], mid?: Card[], bot: Card[] }
+//   showCompact?: boolean    // smaller cards
+// }
+function startComposeUI(opts) {
+  const isV8 = opts.variant === 8;
+  const compactCls = opts.showCompact ? ' compact' : '';
+
+  // Logical groups: 'top' (2), optional 'mid' (3), 'bot' (3), 'hand' (rest)
+  const groups = {
+    top: [],
+    bot: [],
+    hand: opts.cards.slice()
+  };
+  if (isV8) groups.mid = [];
+
+  const groupTargets = {
+    top: 2,
+    bot: 3
+  };
+  if (isV8) groupTargets.mid = 3;
+
+  const gc = $('game-content');
+  gc.innerHTML = '';
+  if (opts.showCompact) gc.classList.add('compact-compose');
+  else gc.classList.remove('compact-compose');
+
+  // Banner
+  const banner = document.createElement('div');
+  banner.className = 'compose-banner';
+  const who = document.createElement('div'); who.className = 'who'; who.textContent = opts.playerName;
+  const what = document.createElement('div'); what.className = 'what';
+  what.textContent = isV8 ? t('compose.what8') : t('compose.what');
+  banner.append(who, what);
+  let timerEl = null;
+  if (opts.timerSec > 0) {
+    timerEl = document.createElement('div'); timerEl.className = 'timer';
+    timerEl.textContent = opts.timerSec + 's';
+    banner.appendChild(timerEl);
+  }
+  gc.appendChild(banner);
+
+  // Hint
+  const hint = document.createElement('div'); hint.className = 'compose-hint';
+  hint.textContent = isV8 ? t('compose.hint8') : t('compose.hint');
+  gc.appendChild(hint);
+
+  // Build slot blocks
+  function buildSlot(groupName, labelKey, target) {
+    const el = document.createElement('div'); el.className = 'slot';
+    el.dataset.group = groupName;
+    const title = document.createElement('div'); title.className = 'slot-title';
+    const span = document.createElement('span'); span.textContent = t(labelKey) + ' ';
+    const count = document.createElement('span'); count.className = 'count';
+    count.textContent = '(0/' + target + ')';
+    title.append(span, count);
+    const row = document.createElement('div'); row.className = 'cards-row';
+    row.dataset.group = groupName;
+    el.append(title, row);
+    return { el, row, count, target };
+  }
+  const slots = {};
+  slots.top = buildSlot('top', 'compose.top', 2);
+  gc.appendChild(slots.top.el);
+  if (isV8) {
+    slots.mid = buildSlot('mid', 'compose.mid', 3);
+    gc.appendChild(slots.mid.el);
+  }
+  slots.bot = buildSlot('bot', 'compose.bot', 3);
+  gc.appendChild(slots.bot.el);
+
+  // Hand area
+  const handLabel = document.createElement('div');
+  handLabel.className = 'slot-title';
+  handLabel.style.marginTop = '12px';
+  handLabel.textContent = t('compose.hand');
+  gc.appendChild(handLabel);
+
+  const handRow = document.createElement('div');
+  handRow.className = 'hand-row';
+  handRow.dataset.group = 'hand';
+  gc.appendChild(handRow);
+
+  // Confirm button
+  const act = $('action-area');
+  act.innerHTML = '';
+  const confirmBtn = document.createElement('button');
+  confirmBtn.className = 'btn';
+  confirmBtn.textContent = t('compose.confirm');
+  confirmBtn.disabled = true;
+  confirmBtn.onclick = () => {
+    cleanup();
+    const result = isV8
+      ? { top: groups.top.slice(), mid: groups.mid.slice(), bot: groups.bot.slice() }
+      : { top: groups.top.slice(), bot: groups.bot.slice() };
+    opts.onConfirm(result, false);
+  };
+  act.appendChild(confirmBtn);
+
+  // ---- Drag & drop state ----
+  let draggedCard = null;
+  let draggedFromGroup = null;
+  let draggedFromIdx = null;
+  let dragElement = null;
+  let dragOffsetX = 0, dragOffsetY = 0;
+  let lastHoveredGroup = null;
+  let lastHoveredIdx = null;
+  let dragStartX = 0, dragStartY = 0;
+  let dragStarted = false;
+  const DRAG_THRESHOLD = 5; // pixels before drag kicks in
+
+  function getRowForGroup(g) {
+    if (g === 'hand') return handRow;
+    return slots[g].row;
+  }
+
+  function getCardsForGroup(g) {
+    return groups[g];
+  }
+
+  function findCardElIndex(row, x, y) {
+    // Returns the index in the row that the (x,y) point would insert at.
+    // Useful for reordering.
+    const children = Array.from(row.children).filter(el => el.classList && el.classList.contains('card'));
+    if (children.length === 0) return 0;
+    for (let i = 0; i < children.length; i++) {
+      const r = children[i].getBoundingClientRect();
+      if (x < r.left + r.width / 2) return i;
+    }
+    return children.length;
+  }
+
+  function elementUnderPoint(x, y) {
+    if (dragElement) dragElement.style.pointerEvents = 'none';
+    const el = document.elementFromPoint(x, y);
+    if (dragElement) dragElement.style.pointerEvents = '';
+    return el;
+  }
+
+  function findGroupFromElement(el) {
+    let cur = el;
+    while (cur) {
+      if (cur.dataset && cur.dataset.group) return cur.dataset.group;
+      cur = cur.parentElement;
+    }
+    return null;
+  }
+
+  function onPointerDown(e, card, fromGroup, fromIdx) {
+    if (e.button !== undefined && e.button !== 0) return; // only left click
+    e.preventDefault();
+    draggedCard = card;
+    draggedFromGroup = fromGroup;
+    draggedFromIdx = fromIdx;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    dragStarted = false;
+    // We listen on document for move/up
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp, { once: true });
+    document.addEventListener('pointercancel', onPointerUp, { once: true });
+  }
+
+  function onPointerMove(e) {
+    if (!draggedCard) return;
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+
+    if (!dragStarted) {
+      if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+      // Start dragging
+      dragStarted = true;
+      const sourceCardEl = findRenderedCardEl(draggedCard, draggedFromGroup);
+      if (sourceCardEl) {
+        const rect = sourceCardEl.getBoundingClientRect();
+        dragOffsetX = dragStartX - rect.left;
+        dragOffsetY = dragStartY - rect.top;
+        // Create a floating clone
+        dragElement = sourceCardEl.cloneNode(true);
+        dragElement.classList.add('dragging');
+        dragElement.style.position = 'fixed';
+        dragElement.style.left = rect.left + 'px';
+        dragElement.style.top = rect.top + 'px';
+        dragElement.style.width = rect.width + 'px';
+        dragElement.style.height = rect.height + 'px';
+        dragElement.style.pointerEvents = 'none';
+        dragElement.style.transition = 'none';
+        document.body.appendChild(dragElement);
+        sourceCardEl.style.visibility = 'hidden';
+      }
+    }
+
+    if (dragElement) {
+      dragElement.style.left = (e.clientX - dragOffsetX) + 'px';
+      dragElement.style.top = (e.clientY - dragOffsetY) + 'px';
+    }
+
+    // Detect hover target
+    const under = elementUnderPoint(e.clientX, e.clientY);
+    const group = findGroupFromElement(under);
+    if (group !== lastHoveredGroup) {
+      // Clear old hover
+      clearDragOverHints();
+      lastHoveredGroup = group;
+      lastHoveredIdx = null;
+      if (group && group !== 'hand') {
+        slots[group].el.classList.add('drag-over');
+      } else if (group === 'hand') {
+        handRow.classList.add('drag-over');
+      }
+    }
+  }
+
+  function clearDragOverHints() {
+    Object.keys(slots).forEach(k => slots[k].el.classList.remove('drag-over'));
+    handRow.classList.remove('drag-over');
+  }
+
+  function onPointerUp(e) {
+    document.removeEventListener('pointermove', onPointerMove);
+    if (!draggedCard) return;
+
+    if (!dragStarted) {
+      // It was a tap, not a drag — fall back to tap behavior (add or remove)
+      handleTap(draggedCard, draggedFromGroup);
+      draggedCard = null;
+      return;
+    }
+
+    // It was a drag: figure out drop target
+    const dropGroup = findGroupFromElement(elementUnderPoint(e.clientX, e.clientY));
+    let success = false;
+    if (dropGroup) {
+      success = tryMoveCard(draggedCard, draggedFromGroup, dropGroup, e.clientX, e.clientY);
+    }
+
+    // Cleanup drag visuals
+    if (dragElement) {
+      dragElement.remove();
+      dragElement = null;
+    }
+    clearDragOverHints();
+    draggedCard = null;
+    dragStarted = false;
+    render();
+  }
+
+  function tryMoveCard(card, fromGroup, toGroup, x, y) {
+    if (fromGroup === toGroup) {
+      // Reorder within the same group
+      const arr = groups[fromGroup];
+      const oldIdx = arr.indexOf(card);
+      if (oldIdx < 0) return false;
+      const row = getRowForGroup(fromGroup);
+      let newIdx = findCardElIndex(row, x, y);
+      // The dragged card is currently invisible in the row, account for it
+      // The indices counted include only visible cards; we need to adjust.
+      // Simplest: remove from arr then insert at newIdx
+      arr.splice(oldIdx, 1);
+      if (newIdx > oldIdx) newIdx -= 1;
+      newIdx = Math.max(0, Math.min(arr.length, newIdx));
+      arr.splice(newIdx, 0, card);
+      return true;
+    }
+    // Different group — check capacity for slot groups
+    if (toGroup !== 'hand') {
+      const cap = groupTargets[toGroup];
+      if (groups[toGroup].length >= cap) {
+        // Slot full — return to original
+        return false;
+      }
+    }
+    // Remove from source
+    const fromArr = groups[fromGroup];
+    const idx = fromArr.indexOf(card);
+    if (idx >= 0) fromArr.splice(idx, 1);
+    // Insert at position determined by x,y in target row
+    const toArr = groups[toGroup];
+    const targetRow = getRowForGroup(toGroup);
+    let insertIdx = findCardElIndex(targetRow, x, y);
+    insertIdx = Math.max(0, Math.min(toArr.length, insertIdx));
+    toArr.splice(insertIdx, 0, card);
+    return true;
+  }
+
+  function handleTap(card, fromGroup) {
+    if (fromGroup === 'hand') {
+      // Add to first non-full slot in order: top, mid (if v8), bot
+      if (groups.top.length < 2) moveCardTo(card, 'hand', 'top');
+      else if (isV8 && groups.mid.length < 3) moveCardTo(card, 'hand', 'mid');
+      else if (groups.bot.length < 3) moveCardTo(card, 'hand', 'bot');
+    } else {
+      // Remove from slot, send back to hand
+      moveCardTo(card, fromGroup, 'hand');
+    }
+    render();
+  }
+
+  function moveCardTo(card, fromGroup, toGroup) {
+    const fromArr = groups[fromGroup];
+    const idx = fromArr.indexOf(card);
+    if (idx >= 0) fromArr.splice(idx, 1);
+    groups[toGroup].push(card);
+  }
+
+  // ---- Rendering ----
+  // We keep a map of cardId → element to find them quickly
+  const cardElMap = new Map();
+  function findRenderedCardEl(card, group) {
+    const key = group + ':' + card.id;
+    return cardElMap.get(key);
+  }
+
+  function render() {
+    cardElMap.clear();
+
+    function fillRow(row, cards, groupName) {
+      row.innerHTML = '';
+      cards.forEach((c, i) => {
+        const el = cardEl(c, { compact: opts.showCompact });
+        el.dataset.cardId = c.id;
+        el.addEventListener('pointerdown', (e) => onPointerDown(e, c, groupName, i));
+        row.appendChild(el);
+        cardElMap.set(groupName + ':' + c.id, el);
+      });
+      if (cards.length === 0 && groupName !== 'hand') {
+        const e = document.createElement('div');
+        e.className = 'empty-hint';
+        e.textContent = t('compose.empty');
+        row.appendChild(e);
+      }
+    }
+
+    fillRow(slots.top.row, groups.top, 'top');
+    if (isV8) fillRow(slots.mid.row, groups.mid, 'mid');
+    fillRow(slots.bot.row, groups.bot, 'bot');
+    fillRow(handRow, groups.hand, 'hand');
+
+    slots.top.count.textContent = '(' + groups.top.length + '/2)';
+    slots.bot.count.textContent = '(' + groups.bot.length + '/3)';
+    if (isV8) slots.mid.count.textContent = '(' + groups.mid.length + '/3)';
+    slots.top.el.classList.toggle('ready', groups.top.length === 2);
+    slots.bot.el.classList.toggle('ready', groups.bot.length === 3);
+    if (isV8) slots.mid.el.classList.toggle('ready', groups.mid.length === 3);
+
+    const ok = isV8
+      ? (groups.top.length === 2 && groups.mid.length === 3 && groups.bot.length === 3)
+      : (groups.top.length === 2 && groups.bot.length === 3);
+    confirmBtn.disabled = !ok;
+  }
+
+  render();
+
+  // ---- Timer ----
+  let timerId = null;
+  if (opts.timerSec > 0) {
+    let remaining = opts.timerSec;
+    timerId = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) {
+        clearInterval(timerId); timerId = null;
+        // Auto-fill remaining slots from hand
+        while (groups.top.length < 2 && groups.hand.length > 0) groups.top.push(groups.hand.shift());
+        if (isV8) {
+          while (groups.mid.length < 3 && groups.hand.length > 0) groups.mid.push(groups.hand.shift());
+        }
+        while (groups.bot.length < 3 && groups.hand.length > 0) groups.bot.push(groups.hand.shift());
+        cleanup();
+        const result = isV8
+          ? { top: groups.top.slice(), mid: groups.mid.slice(), bot: groups.bot.slice() }
+          : { top: groups.top.slice(), bot: groups.bot.slice() };
+        opts.onConfirm(result, true);
+        return;
+      }
+      timerEl.textContent = remaining + 's';
+      if (remaining <= 5) timerEl.classList.add('urgent');
+    }, 1000);
+  }
+
+  function cleanup() {
+    if (timerId) { clearInterval(timerId); timerId = null; }
+    document.removeEventListener('pointermove', onPointerMove);
+    if (dragElement) { dragElement.remove(); dragElement = null; }
+  }
+
+  // Expose cleanup for callers that need to abort
+  return { cleanup };
+}
+
+
 // ============================================================
 function startGame() {
   if (State.mode === 'remote') {
-    const n1 = $('p1-name').value.trim() || t('p1.default');
-    State.players = [{ name: n1, cash: 0 }, { name: '...', cash: 0 }];
-    State.config = readConfig();
+    // PvP mode — go directly to "Create / Join" screen.
+    // Host will enter name and config on the host-config screen.
     pvpEnter();
     return;
   }
@@ -3034,162 +3513,18 @@ function showPrivacy(idx) {
 function showCompose(idx) {
   State.phase = idx === 0 ? 'compose1' : 'compose2';
   const isV8 = State.variant === 8;
-  const cards = State.hands[idx].slice();
-  const slotTop = [];
-  const slotMid = []; // only used in v8
-  const slotBot = [];
-  const handCards = cards.slice();
 
-  const gc = $('game-content');
-  gc.innerHTML = '';
-
-  const banner = document.createElement('div');
-  banner.className = 'compose-banner';
-  const who = document.createElement('div'); who.className = 'who'; who.textContent = State.players[idx].name;
-  const what = document.createElement('div'); what.className = 'what';
-  what.textContent = isV8 ? t('compose.what8') : t('compose.what');
-  banner.append(who, what);
-  let timerEl = null;
-  if (State.config.timerSec > 0) {
-    timerEl = document.createElement('div'); timerEl.className = 'timer';
-    timerEl.textContent = State.config.timerSec + 's';
-    banner.appendChild(timerEl);
-  }
-  gc.appendChild(banner);
-
-  const hint = document.createElement('div'); hint.className = 'compose-hint';
-  hint.textContent = isV8 ? t('compose.hint8') : t('compose.hint');
-  gc.appendChild(hint);
-
-  // Helper to build a slot
-  function buildSlot(labelKey, target) {
-    const el = document.createElement('div'); el.className = 'slot';
-    const title = document.createElement('div'); title.className = 'slot-title';
-    const span = document.createElement('span'); span.textContent = t(labelKey) + ' ';
-    const count = document.createElement('span'); count.className = 'count';
-    count.textContent = '(0/' + target + ')';
-    title.append(span, count);
-    const row = document.createElement('div'); row.className = 'cards-row';
-    el.append(title, row);
-    return { el, row, count, target };
-  }
-
-  const sTop = buildSlot('compose.top', 2);
-  gc.appendChild(sTop.el);
-
-  let sMid = null;
-  if (isV8) {
-    sMid = buildSlot('compose.mid', 3);
-    gc.appendChild(sMid.el);
-  }
-
-  const sBot = buildSlot('compose.bot', 3);
-  gc.appendChild(sBot.el);
-
-  const handLabel = document.createElement('div');
-  handLabel.className = 'slot-title';
-  handLabel.style.marginTop = '16px';
-  handLabel.textContent = t('compose.hand');
-  gc.appendChild(handLabel);
-
-  const handRow = document.createElement('div'); handRow.className = 'hand-row';
-  gc.appendChild(handRow);
-
-  const act = $('action-area');
-  act.innerHTML = '';
-  const confirmBtn = document.createElement('button');
-  confirmBtn.className = 'btn'; confirmBtn.textContent = t('compose.confirm');
-  confirmBtn.disabled = true;
-  confirmBtn.onclick = () => {
-    if (isV8) commitSplit(idx, slotTop.slice(), slotBot.slice(), false, slotMid.slice());
-    else commitSplit(idx, slotTop.slice(), slotBot.slice(), false);
-  };
-  act.appendChild(confirmBtn);
-
-  function render() {
-    sTop.row.innerHTML = ''; sBot.row.innerHTML = ''; handRow.innerHTML = '';
-    if (sMid) sMid.row.innerHTML = '';
-
-    slotTop.forEach(c => {
-      const el = cardEl(c);
-      el.onclick = () => removeFrom('top', c);
-      sTop.row.appendChild(el);
-    });
-    if (isV8) {
-      slotMid.forEach(c => {
-        const el = cardEl(c);
-        el.onclick = () => removeFrom('mid', c);
-        sMid.row.appendChild(el);
-      });
+  startComposeUI({
+    variant: State.variant,
+    playerName: State.players[idx].name,
+    cards: State.hands[idx],
+    timerSec: State.config.timerSec,
+    showCompact: false,
+    onConfirm: (slots, timedOut) => {
+      if (isV8) commitSplit(idx, slots.top, slots.bot, timedOut, slots.mid);
+      else commitSplit(idx, slots.top, slots.bot, timedOut);
     }
-    slotBot.forEach(c => {
-      const el = cardEl(c);
-      el.onclick = () => removeFrom('bot', c);
-      sBot.row.appendChild(el);
-    });
-    handCards.forEach((c, i) => {
-      const el = cardEl(c, { dealt: true, delay: i * 50 });
-      el.onclick = () => addCard(c);
-      handRow.appendChild(el);
-    });
-
-    sTop.count.textContent = '(' + slotTop.length + '/2)';
-    sBot.count.textContent = '(' + slotBot.length + '/3)';
-    if (sMid) sMid.count.textContent = '(' + slotMid.length + '/3)';
-    sTop.el.classList.toggle('ready', slotTop.length === 2);
-    sBot.el.classList.toggle('ready', slotBot.length === 3);
-    if (sMid) sMid.el.classList.toggle('ready', slotMid.length === 3);
-
-    if (slotTop.length === 0) { const e = document.createElement('div'); e.className = 'empty-hint'; e.textContent = t('compose.empty'); sTop.row.appendChild(e); }
-    if (sMid && slotMid.length === 0) { const e = document.createElement('div'); e.className = 'empty-hint'; e.textContent = t('compose.empty'); sMid.row.appendChild(e); }
-    if (slotBot.length === 0) { const e = document.createElement('div'); e.className = 'empty-hint'; e.textContent = t('compose.empty'); sBot.row.appendChild(e); }
-
-    const ok = isV8
-      ? (slotTop.length === 2 && slotMid.length === 3 && slotBot.length === 3)
-      : (slotTop.length === 2 && slotBot.length === 3);
-    confirmBtn.disabled = !ok;
-  }
-
-  function addCard(c) {
-    // Fill priority: top → (mid if v8) → bot
-    if (slotTop.length < 2) slotTop.push(c);
-    else if (isV8 && slotMid.length < 3) slotMid.push(c);
-    else if (slotBot.length < 3) slotBot.push(c);
-    else return;
-    const i = handCards.indexOf(c);
-    if (i >= 0) handCards.splice(i, 1);
-    render();
-  }
-
-  function removeFrom(where, c) {
-    const arr = where === 'top' ? slotTop : where === 'mid' ? slotMid : slotBot;
-    const i = arr.indexOf(c);
-    if (i >= 0) { arr.splice(i, 1); handCards.push(c); render(); }
-  }
-
-  render();
-
-  if (State.config.timerSec > 0) {
-    let remaining = State.config.timerSec;
-    if (State.timer) clearInterval(State.timer);
-    State.timer = setInterval(() => {
-      remaining -= 1;
-      if (remaining <= 0) {
-        clearInterval(State.timer); State.timer = null;
-        // Auto-fill remaining slots from hand
-        while (slotTop.length < 2 && handCards.length > 0) slotTop.push(handCards.shift());
-        if (isV8) {
-          while (slotMid.length < 3 && handCards.length > 0) slotMid.push(handCards.shift());
-        }
-        while (slotBot.length < 3 && handCards.length > 0) slotBot.push(handCards.shift());
-        if (isV8) commitSplit(idx, slotTop.slice(), slotBot.slice(), true, slotMid.slice());
-        else commitSplit(idx, slotTop.slice(), slotBot.slice(), true);
-        return;
-      }
-      timerEl.textContent = remaining + 's';
-      if (remaining <= 5) timerEl.classList.add('urgent');
-    }, 1000);
-  }
+  });
 }
 
 function commitSplit(idx, top, bot, timedOut, mid) {
@@ -3644,7 +3979,11 @@ function closeModal() { $('modal').classList.remove('active'); }
 
 // init translation on load
 window.addEventListener('DOMContentLoaded', () => {
-  setLang('fr');
+  // Detect user language from browser
+  const browserLang = (navigator.language || navigator.userLanguage || 'fr').toLowerCase().split('-')[0];
+  const supported = ['fr', 'en', 'th', 'zh'];
+  const initialLang = supported.includes(browserLang) ? browserLang : 'fr';
+  setLang(initialLang);
 });
 
 document.addEventListener('contextmenu', e => e.preventDefault());
