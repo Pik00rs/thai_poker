@@ -798,11 +798,9 @@
     <h1 data-i18n="pvp.host.title" style="font-size: 20px;">TU ES HÔTE</h1>
   </div>
 
-  <div class="panel">
-    <div class="panel-title" data-i18n="pvp.guest.yourName">Ton nom</div>
-    <div class="field-stack">
-      <input id="host-name-input" type="text" class="wide" maxlength="20" placeholder="...">
-    </div>
+  <div class="code-input-box" style="margin-bottom: 14px; max-width: 100%;">
+    <div class="label" data-i18n="pvp.guest.yourName">Ton nom</div>
+    <input id="host-name-input" type="text" maxlength="20" placeholder="..." style="font-size: 20px; letter-spacing: 1px; text-transform: none;">
   </div>
 
   <div class="panel">
@@ -1765,6 +1763,11 @@ function setMode(m) {
   State.mode = m;
   $('mode-local').classList.toggle('active', m === 'local');
   $('mode-remote').classList.toggle('active', m === 'remote');
+  // Clicking "remote" directly jumps to the PvP create/join screen — no need
+  // to fill out the local setup since the host configures their own game.
+  if (m === 'remote') {
+    pvpEnter();
+  }
 }
 
 function setVariant(n) {
@@ -2173,6 +2176,10 @@ function switchScreen(id) {
 
 function pvpBackToSetup() {
   Net.close();
+  // Reset mode to local so re-entering setup doesn't immediately re-trigger remote
+  State.mode = 'local';
+  $('mode-local').classList.add('active');
+  $('mode-remote').classList.remove('active');
   switchScreen('screen-setup');
   window.scrollTo(0, 0);
 }
