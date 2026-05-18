@@ -109,6 +109,8 @@
     border-radius: 10px; color: var(--cream-soft);
     font-family: var(--display); font-size: 11px; letter-spacing: 1.5px;
     cursor: pointer; text-align: center; transition: all .15s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   .mode-btn .icon { display: block; font-size: 22px; margin-bottom: 4px; }
   .mode-btn.active { background: linear-gradient(180deg, var(--gold-bright), var(--gold)); color: var(--bg-deep); border-color: var(--gold); }
@@ -122,6 +124,8 @@
     letter-spacing: 2.5px; text-transform: uppercase; cursor: pointer;
     box-shadow: 0 6px 20px rgba(212,160,86,0.25), inset 0 1px 0 rgba(255,255,255,0.3);
     transition: transform .12s, box-shadow .2s; margin-top: 14px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   html[lang="th"] .btn, html[lang="zh"] .btn { letter-spacing: 1px; text-transform: none; }
   .btn:active { transform: translateY(2px); box-shadow: 0 2px 8px rgba(212,160,86,0.2); }
@@ -1781,10 +1785,11 @@ function setMode(m) {
   State.mode = m;
   $('mode-local').classList.toggle('active', m === 'local');
   $('mode-remote').classList.toggle('active', m === 'remote');
-  // Clicking "remote" directly jumps to the PvP create/join screen — no need
-  // to fill out the local setup since the host configures their own game.
+  // Clicking "remote" directly jumps to the PvP create/join screen.
+  // We defer with setTimeout so the click handler completes cleanly on mobile —
+  // otherwise some browsers fire synthetic events on whatever appears under the tap.
   if (m === 'remote') {
-    pvpEnter();
+    setTimeout(() => pvpEnter(), 0);
   }
 }
 
