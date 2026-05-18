@@ -350,6 +350,66 @@
   }
   .compact-compose .slot .empty-hint { font-size: 11px; }
 
+  /* Variant 8 — extra-compact: 8 cards must fit on one row, all 4 sections on screen */
+  .v8-compose .compose-banner { padding: 6px 8px; margin-bottom: 4px; }
+  .v8-compose .compose-banner .who { font-size: 13px; }
+  .v8-compose .compose-banner .what { font-size: 11px; }
+  .v8-compose .compose-banner .timer { font-size: 16px; padding: 2px 10px; }
+  .v8-compose .compose-hint {
+    font-size: 11px; margin: 3px 0 4px; line-height: 1.25;
+  }
+  .v8-compose .slot { padding: 5px 6px; margin-bottom: 4px; min-height: auto; }
+  .v8-compose .slot .slot-title { font-size: 9px; margin-bottom: 3px; letter-spacing: 1px; }
+  .v8-compose .slot .cards-row,
+  .v8-compose .hand-row {
+    min-height: 60px; gap: 3px;
+    flex-wrap: nowrap;     /* don't wrap — 8 cards on one row */
+    overflow-x: visible;
+  }
+  /* When v8 compose is active, shrink the surrounding game-screen chrome too */
+  body.v8-active .scoreboard {
+    margin-bottom: 6px;
+    gap: 6px;
+  }
+  body.v8-active .scoreboard .player-card {
+    padding: 6px 10px;
+  }
+  body.v8-active .scoreboard .player-name { font-size: 12px; }
+  body.v8-active .scoreboard .player-total { font-size: 16px; }
+  body.v8-active .scoreboard .player-total small { font-size: 9px; }
+  body.v8-active .round-info { margin-bottom: 6px; font-size: 11px; }
+  body.v8-active .vs { font-size: 14px; }
+  body.v8-active #screen-game .btn-row { margin-top: 6px; }
+  body.v8-active #screen-game details { margin-top: 6px; }
+  /* Smaller cards in v8 so 8 of them fit on one row of a phone */
+  .v8-compose .card {
+    width: 40px; height: 58px;
+    grid-template-rows: 12px 1fr 12px;
+    padding: 3px 4px;
+  }
+  .v8-compose .card .corner .rank-text { font-size: 10px; }
+  .v8-compose .card .corner .suit-mini { font-size: 8px; }
+  .v8-compose .card .center-suit { font-size: 22px; }
+  .v8-compose .card .watermark { font-size: 42px; }
+  .v8-compose .insert-placeholder { height: 58px; }
+  .v8-compose .insert-placeholder.active { width: 44px; /* 40px card + 4px gap */ }
+
+  /* On very narrow screens (iPhone SE etc) — even tighter */
+  @media (max-width: 360px) {
+    .v8-compose .card {
+      width: 34px; height: 50px;
+      grid-template-rows: 10px 1fr 10px;
+      padding: 2px 3px;
+    }
+    .v8-compose .card .corner .rank-text { font-size: 9px; }
+    .v8-compose .card .corner .suit-mini { font-size: 7px; }
+    .v8-compose .card .center-suit { font-size: 18px; }
+    .v8-compose .insert-placeholder { height: 50px; }
+    .v8-compose .insert-placeholder.active { width: 38px; }
+    .v8-compose .slot .cards-row,
+    .v8-compose .hand-row { gap: 2px; }
+  }
+
   /* PRIVACY SCREEN */
   .privacy { text-align: center; padding: 40px 20px; }
   .privacy .seal {
@@ -595,6 +655,19 @@
     cursor: pointer; margin-top: 8px;
   }
   .copy-btn.copied { background: var(--gold); color: var(--bg-deep); }
+
+  /* Version label fixed bottom-left, visible on all screens */
+  .version-label {
+    position: fixed;
+    left: 8px; bottom: 6px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 50;
+    letter-spacing: 0.5px;
+  }
 
   .config-help-box {
     background: rgba(212,160,86,0.06);
@@ -921,6 +994,7 @@
       <div class="label" data-i18n="pvp.guest.codeInput">Code de la partie</div>
       <input id="guest-code-input" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" maxlength="6" placeholder="······">
       <div style="color:var(--muted);font-size:12px;font-style:italic;margin-top:8px" data-i18n="pvp.guest.codeHelp">Entre le code donné par l'hôte</div>
+      <button class="copy-btn" id="guest-paste-btn" onclick="pvpPasteCode()" data-i18n="pvp.guest.paste" style="margin-top: 10px;">📋 Coller le code</button>
     </div>
     <button class="btn" onclick="pvpGuestConnect()" data-i18n="pvp.guest.connect">Se connecter</button>
     <div id="pvp-guest-status" class="connection-status" style="margin-top:14px"></div>
@@ -1045,6 +1119,9 @@ const I18N = {
     'pvp.guest.codeInput': "Code de la partie",
     'pvp.guest.codeHelp': "Entre le code donné par l'hôte",
     'pvp.guest.connect': 'Se connecter',
+    'pvp.guest.paste': '📋 Coller le code',
+    'pvp.guest.pasteOk': '✓ Code collé',
+    'pvp.guest.pasteFail': "Rien à coller dans le presse-papiers",
     'pvp.guest.invalid': 'Code invalide ou partie introuvable',
     'pvp.connecting': 'Connexion en cours...',
     'pvp.connected': 'Connecté !',
@@ -1189,6 +1266,9 @@ const I18N = {
     'pvp.guest.codeInput': 'Game code',
     'pvp.guest.codeHelp': 'Enter the code given by the host',
     'pvp.guest.connect': 'Connect',
+    'pvp.guest.paste': '📋 Paste code',
+    'pvp.guest.pasteOk': '✓ Code pasted',
+    'pvp.guest.pasteFail': 'Nothing to paste from clipboard',
     'pvp.guest.invalid': 'Invalid code or game not found',
     'pvp.connecting': 'Connecting...',
     'pvp.connected': 'Connected!',
@@ -1333,6 +1413,9 @@ const I18N = {
     'pvp.guest.codeInput': 'รหัสเกม',
     'pvp.guest.codeHelp': 'ใส่รหัสที่โฮสต์ให้',
     'pvp.guest.connect': 'เชื่อมต่อ',
+    'pvp.guest.paste': '📋 วางรหัส',
+    'pvp.guest.pasteOk': '✓ วางแล้ว',
+    'pvp.guest.pasteFail': 'ไม่มีอะไรในคลิปบอร์ด',
     'pvp.guest.invalid': 'รหัสไม่ถูกต้องหรือไม่พบเกม',
     'pvp.connecting': 'กำลังเชื่อมต่อ...',
     'pvp.connected': 'เชื่อมต่อแล้ว!',
@@ -1477,6 +1560,9 @@ const I18N = {
     'pvp.guest.codeInput': '游戏代码',
     'pvp.guest.codeHelp': '输入房主给的代码',
     'pvp.guest.connect': '连接',
+    'pvp.guest.paste': '📋 粘贴代码',
+    'pvp.guest.pasteOk': '✓ 已粘贴',
+    'pvp.guest.pasteFail': '剪贴板为空',
     'pvp.guest.invalid': '代码无效或找不到游戏',
     'pvp.connecting': '正在连接...',
     'pvp.connected': '已连接！',
@@ -1936,6 +2022,30 @@ const CryptoHelpers = (() => {
 // ============================================================
 // FIREBASE CONFIG STORAGE (localStorage, just the URL+key for convenience)
 // ============================================================
+// ============================================================
+// NAME MEMORY — remember the player's name across sessions
+// ============================================================
+const NameMemory = {
+  KEY: 'poker_thai_name',
+  load() {
+    try {
+      const s = localStorage.getItem(this.KEY);
+      if (s && typeof s === 'string') return s;
+    } catch (e) {}
+    return '';
+  },
+  save(name) {
+    try {
+      const clean = String(name || '').trim().slice(0, 30);
+      if (clean.length === 0) return;
+      localStorage.setItem(this.KEY, clean);
+    } catch (e) {}
+  }
+};
+
+// ============================================================
+// FIREBASE CONFIG STORAGE (localStorage, just the URL+key for convenience)
+// ============================================================
 const FBConfig = {
   KEY: 'poker_thai_fb_config',
   // Check if a builtin config is set in FIREBASE_BUILTIN_CONFIG (preferred)
@@ -2318,6 +2428,7 @@ async function pvpHostCreate() {
   // Read host config and proceed to create the actual room
   const hostName = ($('host-name-input').value || '').trim() || t('p1.default');
   PvP.setMyName(hostName);
+  NameMemory.save(hostName);
 
   // Build the config object from host-config inputs
   const num = (id, def) => {
@@ -2383,6 +2494,34 @@ function pvpCopyCode() {
   }
 }
 
+async function pvpPasteCode() {
+  const btn = $('guest-paste-btn');
+  const originalText = t('pvp.guest.paste');
+  try {
+    if (!navigator.clipboard || !navigator.clipboard.readText) {
+      throw new Error('clipboard API not available');
+    }
+    const text = await navigator.clipboard.readText();
+    // Extract code: keep only A-Z 0-9 chars (after uppercasing), max 6 chars
+    const clean = (text || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    if (clean.length === 0) {
+      btn.textContent = t('pvp.guest.pasteFail');
+      setTimeout(() => { btn.textContent = originalText; }, 1500);
+      return;
+    }
+    $('guest-code-input').value = clean;
+    btn.classList.add('copied');
+    btn.textContent = t('pvp.guest.pasteOk');
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.textContent = originalText;
+    }, 1500);
+  } catch (e) {
+    btn.textContent = t('pvp.guest.pasteFail');
+    setTimeout(() => { btn.textContent = originalText; }, 1500);
+  }
+}
+
 function pvpStartGuest() {
   switchScreen('screen-pvp-guest');
   window.scrollTo(0, 0);
@@ -2410,6 +2549,7 @@ async function pvpGuestConnect() {
   }
   // Save name for handshake (will be sent to host)
   PvP.setMyName(name);
+  NameMemory.save(name);
 
   $('pvp-guest-status').className = 'connection-status';
   $('pvp-guest-status').innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.connecting'));
@@ -3088,6 +3228,13 @@ function startComposeUI(opts) {
   gc.innerHTML = '';
   if (opts.showCompact) gc.classList.add('compact-compose');
   else gc.classList.remove('compact-compose');
+  if (isV8) {
+    gc.classList.add('v8-compose');
+    document.body.classList.add('v8-active');
+  } else {
+    gc.classList.remove('v8-compose');
+    document.body.classList.remove('v8-active');
+  }
 
   // Banner
   const banner = document.createElement('div');
@@ -3548,6 +3695,7 @@ function startComposeUI(opts) {
       placeholder.parentElement.removeChild(placeholder);
     }
     placeholder = null;
+    document.body.classList.remove('v8-active');
   }
 
   // Expose cleanup for callers that need to abort
@@ -3565,6 +3713,8 @@ function startGame() {
   }
   const n1 = $('p1-name').value.trim() || t('p1.default');
   const n2 = $('p2-name').value.trim() || t('p2.default');
+  // Remember the host/player1 name for next session
+  if ($('p1-name').value.trim()) NameMemory.save(n1);
   State.players = [{ name: n1, cash: 0 }, { name: n2, cash: 0 }];
   State.config = readConfig();
   State.round = 0;
@@ -4117,10 +4267,21 @@ window.addEventListener('DOMContentLoaded', () => {
   const supported = ['fr', 'en', 'th', 'zh'];
   const initialLang = supported.includes(browserLang) ? browserLang : 'fr';
   setLang(initialLang);
+
+  // Pre-fill name fields from memory (local pass-and-play P1, host PvP, guest PvP)
+  const savedName = NameMemory.load();
+  if (savedName) {
+    ['p1-name', 'host-name-input', 'guest-name-input'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && !el.value) el.value = savedName;
+    });
+  }
 });
 
 document.addEventListener('contextmenu', e => e.preventDefault());
 </script>
+
+<div class="version-label">v12.0</div>
 
 </body>
 </html>
