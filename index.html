@@ -9,8 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@500;700&family=Noto+Serif+Thai:wght@500;700&family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -412,92 +411,103 @@
   html[lang="th"] .pvp-screen h2, html[lang="zh"] .pvp-screen h2 { font-family: inherit; letter-spacing: 1px; font-size: 22px; }
   .pvp-screen p { color: var(--cream-soft); margin-bottom: 18px; padding: 0 10px; line-height: 1.5; }
 
-  .qr-display {
-    background: #ffffff;
-    border: 4px solid var(--gold);
-    border-radius: 12px;
-    padding: 16px;
-    margin: 0 auto 16px;
-    max-width: 360px;
-    width: 100%;
-    aspect-ratio: 1;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-  }
-  .qr-display canvas, .qr-display svg, .qr-display img { width: 100%; height: 100%; max-width: 100%; }
-  .qr-display.empty { background: var(--bg-card); color: var(--muted); font-style: italic; }
-  .qr-step-label {
-    font-family: var(--display); color: var(--gold);
-    font-size: 12px; letter-spacing: 1.5px;
-    margin-bottom: 12px; text-transform: uppercase;
-  }
-  html[lang="th"] .qr-step-label, html[lang="zh"] .qr-step-label { font-family: inherit; letter-spacing: 0.5px; text-transform: none; font-size: 14px; }
-
-  .qr-multipart-info {
-    font-family: var(--mono); color: var(--gold-bright);
-    font-size: 13px; margin-bottom: 8px;
-    background: rgba(212,160,86,0.1); padding: 6px 12px;
-    border-radius: 16px; display: inline-block;
-  }
-
-  /* SCANNER */
-  .scanner-overlay {
-    position: fixed; inset: 0; background: #000;
-    z-index: 200; display: none;
-    flex-direction: column;
-  }
-  .scanner-overlay.active { display: flex; }
-  .scanner-overlay .scanner-video {
-    flex: 1; width: 100%; object-fit: cover;
-  }
-  .scanner-overlay .scanner-frame {
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80vw; max-width: 320px; aspect-ratio: 1;
-    border: 3px solid var(--gold-bright);
-    border-radius: 16px;
-    box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
-    pointer-events: none;
-  }
-  .scanner-overlay .scanner-bar {
-    background: var(--bg-deep);
-    padding: 14px;
-    color: var(--cream);
-    text-align: center;
-  }
-  .scanner-overlay .scanner-bar .title {
-    font-family: var(--display); color: var(--gold-bright);
-    font-size: 14px; letter-spacing: 2px; margin-bottom: 8px;
-  }
-  html[lang="th"] .scanner-overlay .scanner-bar .title, html[lang="zh"] .scanner-overlay .scanner-bar .title { font-family: inherit; letter-spacing: 0.5px; font-size: 16px; }
-  .scanner-overlay .scanner-bar .progress {
-    font-family: var(--mono); color: var(--gold);
-    font-size: 13px; margin-bottom: 6px;
-  }
-  .scanner-overlay .scanner-bar .hint { font-style: italic; color: var(--cream-soft); font-size: 13px; margin-bottom: 10px; }
-  .scanner-overlay .scanner-bar button {
-    background: var(--red); color: var(--cream); border: none;
-    padding: 10px 20px; border-radius: 8px;
-    font-family: var(--display); font-size: 12px; letter-spacing: 1.5px;
-    font-weight: 700;
-  }
-
-  .connection-status {
-    display: inline-block;
-    padding: 6px 14px; border-radius: 16px;
-    font-family: var(--mono); font-size: 12px; font-weight: 700;
-    background: var(--bg-card); color: var(--cream-soft);
-  }
-  .connection-status.ok { background: rgba(80,200,120,0.15); color: #6ee7a8; }
-  .connection-status.fail { background: rgba(198,56,56,0.2); color: #f08c8c; }
-
   .pvp-role-badge {
-    display: inline-block; background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+    display: inline-block;
+    background: linear-gradient(180deg, var(--gold-bright), var(--gold));
     color: var(--bg-deep); padding: 6px 16px; border-radius: 18px;
     font-family: var(--display); font-size: 11px; letter-spacing: 2px;
     font-weight: 900; margin-bottom: 14px;
   }
   html[lang="th"] .pvp-role-badge, html[lang="zh"] .pvp-role-badge { font-family: inherit; letter-spacing: 1px; font-size: 13px; }
+
+  /* CODE DISPLAY (big code shown to host) */
+  .code-display {
+    background: linear-gradient(180deg, var(--bg-soft), var(--bg-card));
+    border: 2px solid var(--gold);
+    border-radius: 14px;
+    padding: 28px 16px;
+    margin: 14px auto 16px;
+    box-shadow: var(--shadow-deep), inset 0 0 30px rgba(212,160,86,0.06);
+    position: relative;
+  }
+  .code-display::before, .code-display::after {
+    content: '◆';
+    position: absolute; top: 8px; color: var(--gold); font-size: 12px;
+  }
+  .code-display::before { left: 14px; }
+  .code-display::after { right: 14px; }
+  .code-display .code-label {
+    font-family: var(--display); color: var(--gold);
+    font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  html[lang="th"] .code-display .code-label, html[lang="zh"] .code-display .code-label { font-family: inherit; letter-spacing: 1px; text-transform: none; }
+  .code-display .code-value {
+    font-family: var(--mono); color: var(--gold-bright);
+    font-size: 42px; font-weight: 700;
+    letter-spacing: 8px;
+    text-shadow: 0 2px 10px rgba(212,160,86,0.4);
+    user-select: all;
+    -webkit-user-select: all;
+  }
+  .code-display .code-share {
+    margin-top: 10px; font-style: italic;
+    color: var(--cream-soft); font-size: 13px;
+  }
+
+  /* CODE INPUT (guest) */
+  .code-input-box {
+    background: var(--bg-deep);
+    border: 2px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 20px 14px;
+    margin: 14px auto 16px;
+    max-width: 320px;
+  }
+  .code-input-box input {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--gold-deep);
+    width: 100%; text-align: center;
+    color: var(--gold-bright);
+    font-family: var(--mono);
+    font-size: 32px; font-weight: 700;
+    letter-spacing: 8px;
+    padding: 8px 0;
+    text-transform: uppercase;
+  }
+  .code-input-box input:focus { outline: none; border-bottom-color: var(--gold); }
+  .code-input-box .label {
+    color: var(--muted); font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase; font-family: var(--display);
+    margin-bottom: 8px;
+  }
+  html[lang="th"] .code-input-box .label, html[lang="zh"] .code-input-box .label { font-family: inherit; letter-spacing: 1px; text-transform: none; }
+
+  .connection-status {
+    display: inline-block;
+    padding: 8px 18px; border-radius: 18px;
+    font-family: var(--mono); font-size: 13px; font-weight: 700;
+    background: var(--bg-card); color: var(--cream-soft);
+  }
+  .connection-status.ok { background: rgba(80,200,120,0.15); color: #6ee7a8; }
+  .connection-status.fail { background: rgba(198,56,56,0.2); color: #f08c8c; }
+  .connection-status .spinner {
+    display: inline-block; width: 10px; height: 10px;
+    border: 2px solid var(--gold-deep); border-top-color: var(--gold);
+    border-radius: 50%; vertical-align: middle; margin-right: 6px;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .copy-btn {
+    background: transparent; border: 1px solid var(--gold);
+    color: var(--gold); padding: 8px 16px;
+    border-radius: 8px; font-family: var(--display);
+    font-size: 11px; letter-spacing: 1.5px; font-weight: 700;
+    cursor: pointer; margin-top: 8px;
+  }
+  .copy-btn.copied { background: var(--gold); color: var(--bg-deep); }
 </style>
 </head>
 <body>
@@ -544,7 +554,7 @@
       <button class="mode-btn" id="mode-remote" onclick="setMode('remote')">
         <span class="icon">📡</span>
         <span data-i18n="setup.mode.remote">2 téléphones</span>
-        <span style="display:block;opacity:.7;font-size:9px;margin-top:2px" data-i18n="setup.mode.remote.sub">QR P2P</span>
+        <span style="display:block;opacity:.7;font-size:9px;margin-top:2px" data-i18n="setup.mode.remote.sub">EN LIGNE</span>
       </button>
     </div>
   </div>
@@ -646,12 +656,12 @@
 <div id="screen-pvp-choose" class="screen">
   <div class="header">
     <div class="ornament">📡</div>
-    <h1 data-i18n="pvp.choose.title">Connexion 2 téléphones</h1>
+    <h1 data-i18n="pvp.choose.title">Jouer à distance</h1>
   </div>
   <div class="panel">
     <p style="text-align:center;color:var(--cream-soft);margin-bottom:20px" data-i18n="pvp.choose.text">Un joueur crée la partie...</p>
-    <button class="btn" onclick="pvpStartHost()" data-i18n="pvp.choose.host">Créer la partie (Hôte)</button>
-    <button class="btn secondary" onclick="pvpStartGuest()" data-i18n="pvp.choose.join">Rejoindre une partie (Invité)</button>
+    <button class="btn" onclick="pvpStartHost()" data-i18n="pvp.choose.host">Créer une partie</button>
+    <button class="btn secondary" onclick="pvpStartGuest()" data-i18n="pvp.choose.join">Rejoindre avec un code</button>
     <button class="btn secondary" onclick="pvpBackToSetup()" data-i18n="pvp.choose.back" style="margin-top: 10px">← Retour</button>
   </div>
 </div>
@@ -660,14 +670,13 @@
 <div id="screen-pvp-host" class="screen">
   <div class="pvp-screen">
     <span class="pvp-role-badge" data-i18n="pvp.host.title">TU ES HÔTE</span>
-    <div class="qr-step-label" data-i18n="pvp.host.step1">Étape 1 — Montre ce QR</div>
-    <div id="pvp-host-qr-info" class="qr-multipart-info" style="display:none"></div>
-    <div class="qr-display" id="pvp-host-qr">
-      <span data-i18n="pvp.host.step1.waiting">Génération du QR code...</span>
+    <div class="code-display" id="host-code-display">
+      <div class="code-label" data-i18n="pvp.host.code">Code de la partie</div>
+      <div class="code-value" id="host-code-value">······</div>
+      <div class="code-share" data-i18n="pvp.host.share">Partage ce code à l'autre joueur</div>
+      <button class="copy-btn" id="host-copy-btn" onclick="pvpCopyCode()" data-i18n="pvp.host.copy">Copier le code</button>
     </div>
-    <div id="pvp-host-qr-nav" style="display:none; margin-bottom:16px"></div>
-    <button class="btn" id="pvp-host-scan-btn" onclick="pvpHostScan()" data-i18n="pvp.host.scanBtn">Scanner le QR de l'invité</button>
-    <div id="pvp-host-status" class="connection-status" style="margin-top: 14px"></div>
+    <div id="pvp-host-status" class="connection-status"></div>
     <button class="btn secondary" onclick="pvpCancel()" data-i18n="pvp.choose.back" style="margin-top:14px">← Retour</button>
   </div>
 </div>
@@ -676,19 +685,13 @@
 <div id="screen-pvp-guest" class="screen">
   <div class="pvp-screen">
     <span class="pvp-role-badge" data-i18n="pvp.guest.title">TU ES INVITÉ</span>
-    <div id="pvp-guest-step1">
-      <div class="qr-step-label" data-i18n="pvp.guest.step1">Étape 1 — Scanne le QR de l'hôte</div>
-      <button class="btn" onclick="pvpGuestScan()" data-i18n="pvp.guest.scanBtn">Scanner le QR de l'hôte</button>
+    <div class="code-input-box">
+      <div class="label" data-i18n="pvp.guest.codeInput">Code de la partie</div>
+      <input id="guest-code-input" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" maxlength="6" placeholder="······">
+      <div style="color:var(--muted);font-size:12px;font-style:italic;margin-top:8px" data-i18n="pvp.guest.codeHelp">Entre le code donné par l'hôte</div>
     </div>
-    <div id="pvp-guest-step2" style="display:none">
-      <div class="qr-step-label" data-i18n="pvp.guest.step2">Étape 2 — Montre ce QR à l'hôte</div>
-      <div id="pvp-guest-qr-info" class="qr-multipart-info" style="display:none"></div>
-      <div class="qr-display" id="pvp-guest-qr">
-        <span data-i18n="pvp.guest.step2.waiting">Génération...</span>
-      </div>
-      <div id="pvp-guest-qr-nav" style="display:none; margin-bottom:16px"></div>
-    </div>
-    <div id="pvp-guest-status" class="connection-status" style="margin-top: 14px"></div>
+    <button class="btn" onclick="pvpGuestConnect()" data-i18n="pvp.guest.connect">Se connecter</button>
+    <div id="pvp-guest-status" class="connection-status" style="margin-top:14px"></div>
     <button class="btn secondary" onclick="pvpCancel()" data-i18n="pvp.choose.back" style="margin-top:14px">← Retour</button>
   </div>
 </div>
@@ -700,22 +703,10 @@
     <h2 data-i18n="pvp.test.title">Test de connexion</h2>
     <div id="pvp-test-role" class="pvp-role-badge"></div>
     <div id="pvp-test-status" class="connection-status ok" data-i18n="pvp.connected">Connecté !</div>
-    <p style="margin-top:20px" data-i18n="pvp.test.received">Message reçu de l'adversaire :</p>
-    <div id="pvp-test-log" style="background:var(--bg-deep);padding:12px;border-radius:8px;font-family:var(--mono);font-size:12px;min-height:60px;text-align:left;color:var(--gold-bright);max-height:200px;overflow-y:auto"></div>
+    <p style="margin-top:20px" data-i18n="pvp.test.received">Messages reçus :</p>
+    <div id="pvp-test-log" style="background:var(--bg-deep);padding:12px;border-radius:8px;font-family:var(--mono);font-size:12px;min-height:80px;text-align:left;color:var(--gold-bright);max-height:200px;overflow-y:auto;word-break:break-word"></div>
     <button class="btn" onclick="pvpSendTestPing()" data-i18n="pvp.test.send" style="margin-top:14px">Envoyer un ping</button>
     <button class="btn secondary" onclick="pvpCancel()" data-i18n="pvp.choose.back" style="margin-top:10px">← Retour</button>
-  </div>
-</div>
-
-<!-- ========== SCANNER OVERLAY ========== -->
-<div class="scanner-overlay" id="scanner-overlay">
-  <video class="scanner-video" id="scanner-video" autoplay playsinline muted></video>
-  <div class="scanner-frame"></div>
-  <div class="scanner-bar">
-    <div class="title" data-i18n="pvp.scan.title">Scanner un QR code</div>
-    <div class="progress" id="scanner-progress"></div>
-    <div class="hint" data-i18n="pvp.scan.hint">Pointe la caméra vers le QR code</div>
-    <button onclick="stopScanner(true)" data-i18n="pvp.scan.cancel">Annuler</button>
   </div>
 </div>
 
@@ -756,42 +747,39 @@ const I18N = {
     'setup.mode.local': '1 téléphone',
     'setup.mode.local.sub': 'PASS & PLAY',
     'setup.mode.remote': '2 téléphones',
-    'setup.mode.remote.sub': 'QR P2P',
+    'setup.mode.remote.sub': 'EN LIGNE',
     // PvP
-    'pvp.choose.title': 'Connexion entre 2 téléphones',
-    'pvp.choose.text': 'Un joueur crée la partie (Hôte), l\'autre la rejoint (Invité). Vous échangerez 2 QR codes.',
-    'pvp.choose.host': 'Créer la partie (Hôte)',
-    'pvp.choose.join': 'Rejoindre une partie (Invité)',
+    'pvp.choose.title': 'Jouer à distance',
+    'pvp.choose.text': "Un joueur crée la partie et donne le code à l'autre.",
+    'pvp.choose.host': 'Créer une partie',
+    'pvp.choose.join': 'Rejoindre avec un code',
     'pvp.choose.back': '← Retour',
     'pvp.host.title': 'TU ES HÔTE',
-    'pvp.host.step1': 'Étape 1 — Montre ce QR à l\'invité pour qu\'il le scanne',
-    'pvp.host.step1.waiting': 'Génération du QR code...',
-    'pvp.host.step2': 'Étape 2 — Scanne le QR de réponse de l\'invité',
-    'pvp.host.scanBtn': 'Scanner le QR de l\'invité',
+    'pvp.host.code': 'Code de la partie',
+    'pvp.host.share': "Partage ce code à l'autre joueur",
+    'pvp.host.waiting': "En attente de l'invité...",
+    'pvp.host.copy': 'Copier le code',
+    'pvp.host.copied': 'Copié !',
+    'pvp.host.generating': 'Génération du code...',
     'pvp.guest.title': 'TU ES INVITÉ',
-    'pvp.guest.step1': 'Étape 1 — Scanne le QR de l\'hôte',
-    'pvp.guest.scanBtn': 'Scanner le QR de l\'hôte',
-    'pvp.guest.step2': 'Étape 2 — Montre ce QR de réponse à l\'hôte',
-    'pvp.guest.step2.waiting': 'Génération en cours...',
+    'pvp.guest.codeInput': "Code de la partie",
+    'pvp.guest.codeHelp': 'Entre le code donné par l\'hôte',
+    'pvp.guest.connect': 'Se connecter',
+    'pvp.guest.invalid': 'Code invalide ou partie introuvable',
     'pvp.connecting': 'Connexion en cours...',
     'pvp.connected': 'Connecté !',
     'pvp.failed': 'Connexion échouée',
-    'pvp.failed.text': 'La connexion P2P n\'a pas pu s\'établir. Les NAT de vos opérateurs bloquent peut-être la connexion. Essayez sur le même Wi-Fi.',
+    'pvp.failed.text': "Impossible de se connecter. Vérifie le code et réessaie.",
     'pvp.failed.retry': 'Réessayer',
-    'pvp.scan.title': 'Scanner un QR code',
-    'pvp.scan.hint': 'Pointe la caméra vers le QR code',
-    'pvp.scan.cancel': 'Annuler',
-    'pvp.scan.permDenied': 'Caméra refusée. Active l\'accès caméra dans les réglages du navigateur.',
-    'pvp.scan.notSupported': 'Caméra non supportée par ce navigateur.',
-    'pvp.qr.multipart': 'QR {n}/{total} — scanne les uns après les autres',
     'pvp.disconnected': 'Connexion perdue',
     'pvp.opponent': 'Adversaire',
     'pvp.you': 'Toi',
-    'pvp.waiting.opponent': 'En attente de l\'adversaire...',
+    'pvp.waiting.opponent': "En attente de l'adversaire...",
     'pvp.test.title': 'Test de connexion',
     'pvp.test.send': 'Envoyer un ping',
-    'pvp.test.received': 'Message reçu de l\'adversaire',
-    'pvp.test.continueBtn': 'Continuer (jeu à venir...)',
+    'pvp.test.received': "Messages reçus :",
+    'pvp.test.continueBtn': "Continuer (jeu à venir...)",
+    'pvp.peer.error': 'Erreur de connexion au serveur',
     'setup.players': 'Joueurs',
     'setup.player1': 'Joueur 1',
     'setup.player2': 'Joueur 2',
@@ -881,41 +869,38 @@ const I18N = {
     'setup.mode.local': '1 phone',
     'setup.mode.local.sub': 'PASS & PLAY',
     'setup.mode.remote': '2 phones',
-    'setup.mode.remote.sub': 'QR P2P',
-    'pvp.choose.title': 'Connect 2 phones',
-    'pvp.choose.text': 'One player creates the game (Host), the other joins (Guest). You will exchange 2 QR codes.',
-    'pvp.choose.host': 'Create game (Host)',
-    'pvp.choose.join': 'Join a game (Guest)',
+    'setup.mode.remote.sub': 'ONLINE',
+    'pvp.choose.title': 'Play online',
+    'pvp.choose.text': 'One player creates the game and gives the code to the other.',
+    'pvp.choose.host': 'Create a game',
+    'pvp.choose.join': 'Join with a code',
     'pvp.choose.back': '← Back',
     'pvp.host.title': 'YOU ARE HOST',
-    'pvp.host.step1': 'Step 1 — Show this QR to the guest',
-    'pvp.host.step1.waiting': 'Generating QR code...',
-    'pvp.host.step2': 'Step 2 — Scan the guest\'s response QR',
-    'pvp.host.scanBtn': 'Scan guest\'s QR',
+    'pvp.host.code': 'Game code',
+    'pvp.host.share': 'Share this code with the other player',
+    'pvp.host.waiting': 'Waiting for guest...',
+    'pvp.host.copy': 'Copy code',
+    'pvp.host.copied': 'Copied!',
+    'pvp.host.generating': 'Generating code...',
     'pvp.guest.title': 'YOU ARE GUEST',
-    'pvp.guest.step1': 'Step 1 — Scan the host\'s QR',
-    'pvp.guest.scanBtn': 'Scan host\'s QR',
-    'pvp.guest.step2': 'Step 2 — Show this response QR to the host',
-    'pvp.guest.step2.waiting': 'Generating...',
+    'pvp.guest.codeInput': 'Game code',
+    'pvp.guest.codeHelp': 'Enter the code given by the host',
+    'pvp.guest.connect': 'Connect',
+    'pvp.guest.invalid': 'Invalid code or game not found',
     'pvp.connecting': 'Connecting...',
     'pvp.connected': 'Connected!',
     'pvp.failed': 'Connection failed',
-    'pvp.failed.text': 'P2P connection could not be established. Your operator NATs may be blocking the connection. Try on the same Wi-Fi network.',
+    'pvp.failed.text': 'Could not connect. Check the code and try again.',
     'pvp.failed.retry': 'Retry',
-    'pvp.scan.title': 'Scan a QR code',
-    'pvp.scan.hint': 'Point the camera at the QR code',
-    'pvp.scan.cancel': 'Cancel',
-    'pvp.scan.permDenied': 'Camera denied. Enable camera access in browser settings.',
-    'pvp.scan.notSupported': 'Camera not supported in this browser.',
-    'pvp.qr.multipart': 'QR {n}/{total} — scan them one after another',
     'pvp.disconnected': 'Connection lost',
     'pvp.opponent': 'Opponent',
     'pvp.you': 'You',
     'pvp.waiting.opponent': 'Waiting for opponent...',
     'pvp.test.title': 'Connection test',
     'pvp.test.send': 'Send a ping',
-    'pvp.test.received': 'Message received from opponent',
+    'pvp.test.received': 'Messages received:',
     'pvp.test.continueBtn': 'Continue (game coming...)',
+    'pvp.peer.error': 'Server connection error',
     'setup.players': 'Players',
     'setup.player1': 'Player 1',
     'setup.player2': 'Player 2',
@@ -1005,41 +990,38 @@ const I18N = {
     'setup.mode.local': '๑ เครื่อง',
     'setup.mode.local.sub': 'ส่งต่อกัน',
     'setup.mode.remote': '๒ เครื่อง',
-    'setup.mode.remote.sub': 'QR P2P',
-    'pvp.choose.title': 'เชื่อมต่อ ๒ เครื่อง',
-    'pvp.choose.text': 'ผู้เล่นหนึ่งสร้างเกม (โฮสต์) อีกคนเข้าร่วม (แขก) จะแลกเปลี่ยน QR ๒ อัน',
-    'pvp.choose.host': 'สร้างเกม (โฮสต์)',
-    'pvp.choose.join': 'เข้าร่วม (แขก)',
+    'setup.mode.remote.sub': 'ออนไลน์',
+    'pvp.choose.title': 'เล่นออนไลน์',
+    'pvp.choose.text': 'ผู้เล่นหนึ่งสร้างเกม แล้วบอกรหัสให้อีกคน',
+    'pvp.choose.host': 'สร้างเกม',
+    'pvp.choose.join': 'เข้าร่วมด้วยรหัส',
     'pvp.choose.back': '← ย้อนกลับ',
     'pvp.host.title': 'คุณคือโฮสต์',
-    'pvp.host.step1': 'ขั้นที่ ๑ — แสดง QR นี้ให้แขกสแกน',
-    'pvp.host.step1.waiting': 'กำลังสร้าง QR...',
-    'pvp.host.step2': 'ขั้นที่ ๒ — สแกน QR ตอบกลับจากแขก',
-    'pvp.host.scanBtn': 'สแกน QR ของแขก',
+    'pvp.host.code': 'รหัสเกม',
+    'pvp.host.share': 'แชร์รหัสนี้ให้ผู้เล่นอีกคน',
+    'pvp.host.waiting': 'กำลังรอแขก...',
+    'pvp.host.copy': 'คัดลอกรหัส',
+    'pvp.host.copied': 'คัดลอกแล้ว!',
+    'pvp.host.generating': 'กำลังสร้างรหัส...',
     'pvp.guest.title': 'คุณคือแขก',
-    'pvp.guest.step1': 'ขั้นที่ ๑ — สแกน QR ของโฮสต์',
-    'pvp.guest.scanBtn': 'สแกน QR ของโฮสต์',
-    'pvp.guest.step2': 'ขั้นที่ ๒ — แสดง QR ตอบกลับให้โฮสต์',
-    'pvp.guest.step2.waiting': 'กำลังสร้าง...',
+    'pvp.guest.codeInput': 'รหัสเกม',
+    'pvp.guest.codeHelp': 'ใส่รหัสที่โฮสต์ให้',
+    'pvp.guest.connect': 'เชื่อมต่อ',
+    'pvp.guest.invalid': 'รหัสไม่ถูกต้องหรือไม่พบเกม',
     'pvp.connecting': 'กำลังเชื่อมต่อ...',
     'pvp.connected': 'เชื่อมต่อแล้ว!',
     'pvp.failed': 'เชื่อมต่อล้มเหลว',
-    'pvp.failed.text': 'ไม่สามารถสร้างการเชื่อมต่อ P2P ได้ NAT ของผู้ให้บริการอาจปิดกั้น ลองใช้ Wi-Fi เดียวกัน',
+    'pvp.failed.text': 'ไม่สามารถเชื่อมต่อได้ ตรวจสอบรหัสและลองใหม่',
     'pvp.failed.retry': 'ลองใหม่',
-    'pvp.scan.title': 'สแกน QR',
-    'pvp.scan.hint': 'หันกล้องไปที่ QR',
-    'pvp.scan.cancel': 'ยกเลิก',
-    'pvp.scan.permDenied': 'กล้องถูกปฏิเสธ เปิดสิทธิ์กล้องในเบราว์เซอร์',
-    'pvp.scan.notSupported': 'เบราว์เซอร์ไม่รองรับกล้อง',
-    'pvp.qr.multipart': 'QR {n}/{total} — สแกนทีละอัน',
     'pvp.disconnected': 'การเชื่อมต่อขาด',
     'pvp.opponent': 'คู่ต่อสู้',
     'pvp.you': 'คุณ',
     'pvp.waiting.opponent': 'รอคู่ต่อสู้...',
     'pvp.test.title': 'ทดสอบการเชื่อมต่อ',
     'pvp.test.send': 'ส่งปิง',
-    'pvp.test.received': 'ได้รับข้อความจากคู่ต่อสู้',
+    'pvp.test.received': 'ข้อความที่ได้รับ:',
     'pvp.test.continueBtn': 'ต่อไป (เกมเร็วๆ นี้...)',
+    'pvp.peer.error': 'ข้อผิดพลาดการเชื่อมต่อเซิร์ฟเวอร์',
     'setup.players': 'ผู้เล่น',
     'setup.player1': 'ผู้เล่น ๑',
     'setup.player2': 'ผู้เล่น ๒',
@@ -1129,41 +1111,38 @@ const I18N = {
     'setup.mode.local': '单机模式',
     'setup.mode.local.sub': '轮流游玩',
     'setup.mode.remote': '双机联机',
-    'setup.mode.remote.sub': 'QR P2P',
-    'pvp.choose.title': '连接两台手机',
-    'pvp.choose.text': '一位玩家创建房间（房主），另一位加入（访客）。你们需要交换 2 个二维码。',
-    'pvp.choose.host': '创建游戏（房主）',
-    'pvp.choose.join': '加入游戏（访客）',
+    'setup.mode.remote.sub': '在线',
+    'pvp.choose.title': '在线游戏',
+    'pvp.choose.text': '一位玩家创建游戏并把代码给另一位。',
+    'pvp.choose.host': '创建游戏',
+    'pvp.choose.join': '用代码加入',
     'pvp.choose.back': '← 返回',
     'pvp.host.title': '你是房主',
-    'pvp.host.step1': '步骤 1 — 把这个二维码给访客扫描',
-    'pvp.host.step1.waiting': '正在生成二维码...',
-    'pvp.host.step2': '步骤 2 — 扫描访客的回复二维码',
-    'pvp.host.scanBtn': '扫描访客的二维码',
+    'pvp.host.code': '游戏代码',
+    'pvp.host.share': '把这个代码分享给另一位玩家',
+    'pvp.host.waiting': '等待访客加入...',
+    'pvp.host.copy': '复制代码',
+    'pvp.host.copied': '已复制！',
+    'pvp.host.generating': '正在生成代码...',
     'pvp.guest.title': '你是访客',
-    'pvp.guest.step1': '步骤 1 — 扫描房主的二维码',
-    'pvp.guest.scanBtn': '扫描房主的二维码',
-    'pvp.guest.step2': '步骤 2 — 把回复的二维码给房主',
-    'pvp.guest.step2.waiting': '正在生成...',
-    'pvp.connecting': '连接中...',
+    'pvp.guest.codeInput': '游戏代码',
+    'pvp.guest.codeHelp': '输入房主给的代码',
+    'pvp.guest.connect': '连接',
+    'pvp.guest.invalid': '代码无效或找不到游戏',
+    'pvp.connecting': '正在连接...',
     'pvp.connected': '已连接！',
     'pvp.failed': '连接失败',
-    'pvp.failed.text': '无法建立 P2P 连接。运营商的 NAT 可能阻止了连接。请尝试同一 Wi-Fi。',
+    'pvp.failed.text': '无法连接。请检查代码并重试。',
     'pvp.failed.retry': '重试',
-    'pvp.scan.title': '扫描二维码',
-    'pvp.scan.hint': '将相机对准二维码',
-    'pvp.scan.cancel': '取消',
-    'pvp.scan.permDenied': '相机被拒绝。请在浏览器设置中开启相机权限。',
-    'pvp.scan.notSupported': '此浏览器不支持相机。',
-    'pvp.qr.multipart': '二维码 {n}/{total} — 依次扫描',
     'pvp.disconnected': '连接断开',
     'pvp.opponent': '对手',
     'pvp.you': '你',
     'pvp.waiting.opponent': '等待对手...',
     'pvp.test.title': '连接测试',
     'pvp.test.send': '发送 ping',
-    'pvp.test.received': '收到对手的消息',
+    'pvp.test.received': '收到的消息：',
     'pvp.test.continueBtn': '继续（游戏即将到来...）',
+    'pvp.peer.error': '服务器连接错误',
     'setup.players': '玩家',
     'setup.player1': '玩家 1',
     'setup.player2': '玩家 2',
@@ -1508,450 +1487,216 @@ function formatMoney(n) {
 }
 
 // ============================================================
-// NET — WebRTC P2P + QR multipart
+// NET — PeerJS (WebRTC P2P with public signaling server)
 // ============================================================
 // Architecture:
-//  - Host creates RTCPeerConnection, generates offer (after ICE gathering complete)
-//  - Offer is base64+lz-compressed, then chunked into N pieces of ~700 chars each
-//  - Each chunk encoded as QR code (low-density, scannable on mobile)
-//  - Guest scans them one by one, reconstructs the offer, generates answer
-//  - Answer is chunked the same way, host scans
-//  - DataChannel opens, both ends know they're connected
+//   - Host calls peer.createPeer() and gets a generated peer id (we shorten to 6 chars
+//     for sharing, but the actual peer id is a prefixed version).
+//   - Guest connects to the host's peer id.
+//   - DataChannel opens, both sides exchange JSON messages.
 //
-// SDP compression: we use simple base64+RLE-style optimization (just gzip via CompressionStream)
-// to keep QR codes manageable. Typical SDP ~2.5KB → ~1KB compressed → 2-3 QRs.
+// Public PeerJS Cloud is used for signaling. After signaling, all traffic is direct P2P
+// (or relayed via TURN if NAT-symmetric). No data persists on any server.
+//
+// Code format: we prefix our peer ids with "potk-" so we don't collide with other
+// PeerJS users on the public broker. Shown to the user as 6 alphanumeric uppercase chars.
 
 const Net = (() => {
-  let pc = null;
-  let channel = null;
-  let role = null; // 'host' | 'guest'
+  const PREFIX = 'pokr-';        // peer id prefix to namespace ourselves on the broker
+  const CODE_LEN = 6;            // visible code length
+  const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // avoid 0/O/1/I confusion
+
+  let peer = null;
+  let conn = null;               // DataConnection (the open data channel)
+  let role = null;               // 'host' | 'guest'
   let onMessage = null;
   let onStateChange = null;
-  let scanBuffer = {}; // For multipart QR reception
-  let scanExpectedTotal = 0;
+  let myCode = null;
 
-  // ---- Compression (gzip via CompressionStream API) with fallback ----
-  async function compress(str) {
-    if (typeof CompressionStream === 'undefined') return str;
-    try {
-      const stream = new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'));
-      const buf = await new Response(stream).arrayBuffer();
-      // Base64-encode the binary
-      return 'g:' + bytesToBase64(new Uint8Array(buf));
-    } catch (e) {
-      return str;
-    }
+  function randomCode() {
+    const bytes = new Uint8Array(CODE_LEN);
+    crypto.getRandomValues(bytes);
+    let s = '';
+    for (let i = 0; i < CODE_LEN; i++) s += CODE_CHARS[bytes[i] % CODE_CHARS.length];
+    return s;
   }
 
-  async function decompress(str) {
-    if (str.startsWith('g:')) {
-      try {
-        const bytes = base64ToBytes(str.slice(2));
-        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-        return await new Response(stream).text();
-      } catch (e) {
-        return str.slice(2);
+  function emitState(state) {
+    console.log('[Net]', state);
+    if (onStateChange) onStateChange(state);
+  }
+
+  // Sets up the data connection event handlers (called on both sides once we have conn)
+  function bindConn(c) {
+    conn = c;
+    conn.on('open', () => emitState('open'));
+    conn.on('data', (data) => {
+      let msg = data;
+      if (typeof data === 'string') {
+        try { msg = JSON.parse(data); } catch (e) { return; }
       }
-    }
-    return str;
-  }
-
-  function bytesToBase64(bytes) {
-    let bin = '';
-    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-    return btoa(bin);
-  }
-  function base64ToBytes(b64) {
-    const bin = atob(b64);
-    const out = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-    return out;
-  }
-
-  // ---- Multipart QR ----
-  // Each chunk format: "PT|<id>|<idx>|<total>|<data>"
-  // where <id> is a 4-char random session id so we don't mix chunks from different SDPs.
-  const CHUNK_SIZE = 700; // characters per QR — tuned for QR error-correction L on phone
-
-  function makeSessionId() {
-    const buf = new Uint8Array(3);
-    crypto.getRandomValues(buf);
-    return bytesToBase64(buf).replace(/[+/=]/g, '').slice(0, 4) || 'ABCD';
-  }
-
-  function chunkPayload(payload) {
-    const id = makeSessionId();
-    const chunks = [];
-    const total = Math.max(1, Math.ceil(payload.length / CHUNK_SIZE));
-    for (let i = 0; i < total; i++) {
-      const data = payload.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-      chunks.push('PT|' + id + '|' + (i + 1) + '|' + total + '|' + data);
-    }
-    return chunks;
-  }
-
-  // Parses a single chunk, returns { id, idx, total, data } or null
-  function parseChunk(raw) {
-    if (!raw || !raw.startsWith('PT|')) return null;
-    const parts = raw.split('|');
-    if (parts.length < 5) return null;
-    const id = parts[1];
-    const idx = parseInt(parts[2], 10);
-    const total = parseInt(parts[3], 10);
-    if (!Number.isFinite(idx) || !Number.isFinite(total) || idx < 1 || total < 1 || idx > total) return null;
-    const data = parts.slice(4).join('|');
-    return { id, idx, total, data };
-  }
-
-  // Returns null if more chunks needed, otherwise returns the full reassembled payload
-  function feedChunk(raw) {
-    const c = parseChunk(raw);
-    if (!c) return { err: 'bad_format' };
-
-    if (!scanBuffer.id || scanBuffer.id !== c.id) {
-      // Reset for new session
-      scanBuffer = { id: c.id, total: c.total, parts: new Array(c.total).fill(null) };
-      scanExpectedTotal = c.total;
-    }
-    if (scanBuffer.total !== c.total) return { err: 'mismatch' };
-
-    scanBuffer.parts[c.idx - 1] = c.data;
-    const collected = scanBuffer.parts.filter(p => p !== null).length;
-    if (collected === c.total) {
-      const full = scanBuffer.parts.join('');
-      scanBuffer = {};
-      return { done: true, payload: full, total: c.total, idx: c.idx };
-    }
-    return { done: false, total: c.total, idx: c.idx, collected };
-  }
-
-  function resetScanBuffer() {
-    scanBuffer = {};
-    scanExpectedTotal = 0;
-  }
-
-  // ---- WebRTC ----
-  const PC_CONFIG = {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' }
-    ]
-  };
-
-  function setupPeerConnection() {
-    pc = new RTCPeerConnection(PC_CONFIG);
-    pc.onconnectionstatechange = () => {
-      console.log('[Net] PC state:', pc.connectionState);
-      if (onStateChange) onStateChange(pc.connectionState);
-    };
-    pc.oniceconnectionstatechange = () => {
-      console.log('[Net] ICE state:', pc.iceConnectionState);
-    };
-  }
-
-  function setupChannel(ch) {
-    channel = ch;
-    channel.onopen = () => {
-      console.log('[Net] Channel open');
-      if (onStateChange) onStateChange('open');
-    };
-    channel.onclose = () => {
-      console.log('[Net] Channel closed');
-      if (onStateChange) onStateChange('closed');
-    };
-    channel.onmessage = (e) => {
-      try {
-        const msg = JSON.parse(e.data);
-        if (onMessage) onMessage(msg);
-      } catch (err) {
-        console.warn('[Net] Bad message', err);
-      }
-    };
-  }
-
-  // Wait for ICE gathering to complete to get a "complete" SDP without trickle ICE.
-  // Non-trickle is required for QR-based exchange because we need a single SDP blob.
-  function waitForIceGatheringComplete(timeoutMs = 5000) {
-    return new Promise((resolve) => {
-      if (pc.iceGatheringState === 'complete') {
-        resolve();
-        return;
-      }
-      let timer = setTimeout(() => {
-        console.warn('[Net] ICE gathering timeout, proceeding with what we have');
-        cleanup();
-        resolve();
-      }, timeoutMs);
-      function check() {
-        if (pc.iceGatheringState === 'complete') {
-          cleanup();
-          resolve();
-        }
-      }
-      function cleanup() {
-        clearTimeout(timer);
-        pc.removeEventListener('icegatheringstatechange', check);
-      }
-      pc.addEventListener('icegatheringstatechange', check);
+      if (onMessage) onMessage(msg);
+    });
+    conn.on('close', () => { emitState('closed'); });
+    conn.on('error', (err) => {
+      console.error('[Net] conn error', err);
+      emitState('error');
     });
   }
 
-  // Host: create offer, return compressed payload + chunks
-  async function hostCreateOffer() {
-    setupPeerConnection();
-    const ch = pc.createDataChannel('poker', { ordered: true });
-    setupChannel(ch);
-
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    await waitForIceGatheringComplete();
-    const sdp = pc.localDescription.sdp;
-    // Send only sdp text, type is known by role (host sends offer, guest sends answer)
-    const compressed = await compress(sdp);
-    const chunks = chunkPayload(compressed);
-    role = 'host';
-    return { chunks, total: chunks.length };
+  // Host: create a Peer with our chosen id (PREFIX + code).
+  // Returns a promise resolving to the 6-char code that the host shares with guest.
+  function hostCreate() {
+    return new Promise((resolve, reject) => {
+      if (typeof Peer === 'undefined') {
+        reject(new Error('PeerJS not loaded'));
+        return;
+      }
+      role = 'host';
+      const code = randomCode();
+      const peerId = PREFIX + code;
+      try {
+        peer = new Peer(peerId, { debug: 1 });
+      } catch (e) {
+        reject(e);
+        return;
+      }
+      let resolved = false;
+      const tOut = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          reject(new Error('PeerJS open timeout'));
+        }
+      }, 15000);
+      peer.on('open', (id) => {
+        if (resolved) return;
+        resolved = true;
+        clearTimeout(tOut);
+        myCode = code;
+        emitState('peer-open');
+        resolve(code);
+      });
+      peer.on('connection', (c) => {
+        // Guest is connecting
+        emitState('peer-incoming');
+        bindConn(c);
+      });
+      peer.on('error', (err) => {
+        console.error('[Net] peer error', err);
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(tOut);
+          reject(err);
+        } else {
+          emitState('peer-error');
+        }
+      });
+      peer.on('disconnected', () => emitState('peer-disconnected'));
+      peer.on('close', () => emitState('peer-closed'));
+    });
   }
 
-  // Host receives the guest's answer
-  async function hostReceiveAnswer(compressedPayload) {
-    const sdp = await decompress(compressedPayload);
-    await pc.setRemoteDescription({ type: 'answer', sdp });
-  }
-
-  // Guest: receives the offer, generates the answer
-  async function guestReceiveOfferAndAnswer(compressedPayload) {
-    setupPeerConnection();
-    pc.ondatachannel = (e) => {
-      setupChannel(e.channel);
-    };
-    const sdp = await decompress(compressedPayload);
-    await pc.setRemoteDescription({ type: 'offer', sdp });
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    await waitForIceGatheringComplete();
-    const answerSdp = pc.localDescription.sdp;
-    const compressed = await compress(answerSdp);
-    const chunks = chunkPayload(compressed);
-    role = 'guest';
-    return { chunks, total: chunks.length };
+  // Guest: connect to a host using their 6-char code.
+  // Returns a promise that resolves when the data channel opens.
+  function guestConnect(code) {
+    return new Promise((resolve, reject) => {
+      if (typeof Peer === 'undefined') {
+        reject(new Error('PeerJS not loaded'));
+        return;
+      }
+      role = 'guest';
+      code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (code.length !== CODE_LEN) {
+        reject(new Error('Invalid code length'));
+        return;
+      }
+      try {
+        // Use a random-id for our own peer instance (we don't need a static id as guest)
+        peer = new Peer({ debug: 1 });
+      } catch (e) {
+        reject(e);
+        return;
+      }
+      let resolved = false;
+      const tOut = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          reject(new Error('Connection timeout'));
+        }
+      }, 15000);
+      peer.on('open', () => {
+        emitState('peer-open');
+        const targetId = PREFIX + code;
+        const c = peer.connect(targetId, { reliable: true });
+        bindConn(c);
+        c.on('open', () => {
+          if (resolved) return;
+          resolved = true;
+          clearTimeout(tOut);
+          resolve();
+        });
+        c.on('error', (err) => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(tOut);
+            reject(err);
+          }
+        });
+      });
+      peer.on('error', (err) => {
+        console.error('[Net] guest peer error', err);
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(tOut);
+          // PeerJS error.type === 'peer-unavailable' means the host's id doesn't exist
+          reject(err);
+        } else {
+          emitState('peer-error');
+        }
+      });
+    });
   }
 
   function send(msg) {
-    if (!channel || channel.readyState !== 'open') {
+    if (!conn || !conn.open) {
       console.warn('[Net] cannot send, channel not open');
       return false;
     }
-    channel.send(JSON.stringify(msg));
-    return true;
+    try {
+      conn.send(JSON.stringify(msg));
+      return true;
+    } catch (e) {
+      console.error('[Net] send failed', e);
+      return false;
+    }
   }
 
   function close() {
-    if (channel) {
-      try { channel.close(); } catch (e) {}
-      channel = null;
-    }
-    if (pc) {
-      try { pc.close(); } catch (e) {}
-      pc = null;
-    }
-    resetScanBuffer();
+    if (conn) { try { conn.close(); } catch (e) {} conn = null; }
+    if (peer) { try { peer.destroy(); } catch (e) {} peer = null; }
     role = null;
+    myCode = null;
   }
 
-  function isOpen() {
-    return channel && channel.readyState === 'open';
-  }
+  function isOpen() { return conn && conn.open; }
+  function getRole() { return role; }
+  function getCode() { return myCode; }
 
   return {
-    hostCreateOffer,
-    hostReceiveAnswer,
-    guestReceiveOfferAndAnswer,
-    send,
-    close,
-    isOpen,
-    feedChunk,
-    resetScanBuffer,
+    hostCreate, guestConnect,
+    send, close, isOpen,
+    getRole, getCode,
     setOnMessage: (fn) => { onMessage = fn; },
-    setOnStateChange: (fn) => { onStateChange = fn; },
-    getRole: () => role
+    setOnStateChange: (fn) => { onStateChange = fn; }
   };
 })();
-
-// ============================================================
-// QR rendering & scanning
-// ============================================================
-
-// Render a QR code into a container (uses qrcode-generator lib from CDN)
-function renderQR(container, text) {
-  container.innerHTML = '';
-  container.classList.remove('empty');
-  // qrcode-generator: typeNumber 0 = auto, errorCorrectionLevel 'L' for max capacity
-  const qr = qrcode(0, 'L');
-  qr.addData(text);
-  qr.make();
-  // 6 = cell size, 4 = margin
-  const html = qr.createSvgTag(6, 4);
-  container.innerHTML = html;
-  const svg = container.querySelector('svg');
-  if (svg) {
-    svg.removeAttribute('width');
-    svg.removeAttribute('height');
-    svg.style.width = '100%';
-    svg.style.height = '100%';
-  }
-}
-
-// State for multi-QR display (PvP)
-const QRDisplay = {
-  chunks: [],
-  current: 0,
-  containerId: null,
-  navId: null,
-  infoId: null,
-
-  show(containerId, navId, infoId, chunks) {
-    this.chunks = chunks;
-    this.current = 0;
-    this.containerId = containerId;
-    this.navId = navId;
-    this.infoId = infoId;
-    this.render();
-  },
-
-  render() {
-    const container = $(this.containerId);
-    if (!container) return;
-    renderQR(container, this.chunks[this.current]);
-
-    const info = $(this.infoId);
-    if (info) {
-      if (this.chunks.length > 1) {
-        info.style.display = 'inline-block';
-        info.textContent = t('pvp.qr.multipart').replace('{n}', this.current + 1).replace('{total}', this.chunks.length);
-      } else {
-        info.style.display = 'none';
-      }
-    }
-
-    const nav = $(this.navId);
-    if (nav) {
-      if (this.chunks.length > 1) {
-        nav.style.display = 'grid';
-        nav.style.gridTemplateColumns = '1fr 1fr';
-        nav.style.gap = '8px';
-        nav.innerHTML = '';
-        const prev = document.createElement('button');
-        prev.className = 'btn secondary';
-        prev.style.marginTop = '0';
-        prev.textContent = '◀';
-        prev.disabled = this.current === 0;
-        prev.onclick = () => { this.current = Math.max(0, this.current - 1); this.render(); };
-        const next = document.createElement('button');
-        next.className = 'btn secondary';
-        next.style.marginTop = '0';
-        next.textContent = '▶';
-        next.disabled = this.current === this.chunks.length - 1;
-        next.onclick = () => { this.current = Math.min(this.chunks.length - 1, this.current + 1); this.render(); };
-        nav.append(prev, next);
-      } else {
-        nav.style.display = 'none';
-      }
-    }
-  }
-};
-
-// ---- Camera scanner ----
-const Scanner = {
-  stream: null,
-  video: null,
-  canvas: null,
-  ctx: null,
-  rafId: null,
-  onResult: null,
-
-  async start(onResult) {
-    this.onResult = onResult;
-    Net.resetScanBuffer();
-    const overlay = $('scanner-overlay');
-    overlay.classList.add('active');
-    this.video = $('scanner-video');
-    this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
-    $('scanner-progress').textContent = '';
-
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      alert(t('pvp.scan.notSupported'));
-      this.stop();
-      return;
-    }
-    try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-        audio: false
-      });
-    } catch (e) {
-      alert(t('pvp.scan.permDenied'));
-      this.stop();
-      return;
-    }
-    this.video.srcObject = this.stream;
-    await this.video.play();
-    this.loop();
-  },
-
-  loop() {
-    if (!this.video) return;
-    if (this.video.readyState === this.video.HAVE_ENOUGH_DATA && typeof jsQR !== 'undefined') {
-      this.canvas.width = this.video.videoWidth;
-      this.canvas.height = this.video.videoHeight;
-      this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-      const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-      if (code && code.data) {
-        const result = Net.feedChunk(code.data);
-        if (result.err) {
-          // Ignore badly-formatted QRs (might be a random QR)
-        } else if (result.done) {
-          // We have the full payload
-          this.stop();
-          if (this.onResult) this.onResult(result.payload);
-          return;
-        } else {
-          // Progress
-          $('scanner-progress').textContent =
-            t('pvp.qr.multipart').replace('{n}', result.idx).replace('{total}', result.total) +
-            ' — ' + this._countCollected() + '/' + result.total;
-        }
-      }
-    }
-    this.rafId = requestAnimationFrame(() => this.loop());
-  },
-
-  _countCollected() {
-    // Re-read from Net internal — but we kept it private; fall back to using idx info
-    return ''; // Not strictly accurate; we display progress via the latest idx
-  },
-
-  stop(cancelled) {
-    if (this.rafId) { cancelAnimationFrame(this.rafId); this.rafId = null; }
-    if (this.stream) { this.stream.getTracks().forEach(t => t.stop()); this.stream = null; }
-    if (this.video) { this.video.srcObject = null; }
-    $('scanner-overlay').classList.remove('active');
-    if (cancelled) {
-      Net.resetScanBuffer();
-      this.onResult = null;
-    }
-  }
-};
-
-function stopScanner(cancelled) { Scanner.stop(cancelled); }
 
 // ============================================================
 // PvP FLOW
 // ============================================================
 function switchScreen(id) {
-  ['screen-setup','screen-game','screen-pvp-choose','screen-pvp-host','screen-pvp-guest','screen-pvp-test'].forEach(s => {
+  const screens = ['screen-setup','screen-game','screen-pvp-choose','screen-pvp-host','screen-pvp-guest','screen-pvp-test'];
+  screens.forEach(s => {
     const el = $(s);
     if (el) el.classList.toggle('active', s === id);
   });
@@ -1969,8 +1714,7 @@ function pvpCancel() {
   window.scrollTo(0, 0);
 }
 
-async function pvpEnter() {
-  // Called when user picks "remote" mode and clicks Start
+function pvpEnter() {
   switchScreen('screen-pvp-choose');
   window.scrollTo(0, 0);
 }
@@ -1978,97 +1722,133 @@ async function pvpEnter() {
 async function pvpStartHost() {
   switchScreen('screen-pvp-host');
   window.scrollTo(0, 0);
+  $('host-code-value').textContent = '······';
   $('pvp-host-status').className = 'connection-status';
-  $('pvp-host-status').textContent = t('pvp.connecting');
-  $('pvp-host-qr').innerHTML = '<span>' + escapeText(t('pvp.host.step1.waiting')) + '</span>';
-  $('pvp-host-qr').classList.add('empty');
+  $('pvp-host-status').innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.host.generating'));
+  $('host-copy-btn').classList.remove('copied');
+  $('host-copy-btn').textContent = t('pvp.host.copy');
 
-  Net.setOnStateChange(handleNetState);
+  Net.setOnStateChange(handleNetStateHost);
   Net.setOnMessage(handleNetMessage);
 
   try {
-    const { chunks } = await Net.hostCreateOffer();
-    QRDisplay.show('pvp-host-qr', 'pvp-host-qr-nav', 'pvp-host-qr-info', chunks);
-    $('pvp-host-status').textContent = '';
+    const code = await Net.hostCreate();
+    $('host-code-value').textContent = code;
+    $('pvp-host-status').className = 'connection-status';
+    $('pvp-host-status').innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.host.waiting'));
   } catch (e) {
-    console.error('[PvP] host offer failed', e);
+    console.error('[PvP host] failed', e);
     $('pvp-host-status').className = 'connection-status fail';
-    $('pvp-host-status').textContent = t('pvp.failed');
+    $('pvp-host-status').textContent = t('pvp.peer.error');
   }
 }
 
-function pvpHostScan() {
-  Scanner.start(async (payload) => {
-    $('pvp-host-status').className = 'connection-status';
-    $('pvp-host-status').textContent = t('pvp.connecting');
-    try {
-      await Net.hostReceiveAnswer(payload);
-      // Will become connected via onStateChange
-    } catch (e) {
-      console.error('[PvP] receive answer failed', e);
-      $('pvp-host-status').className = 'connection-status fail';
-      $('pvp-host-status').textContent = t('pvp.failed');
-    }
-  });
+function pvpCopyCode() {
+  const code = $('host-code-value').textContent;
+  if (!code || code === '······') return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(() => {
+      const btn = $('host-copy-btn');
+      btn.classList.add('copied');
+      btn.textContent = t('pvp.host.copied');
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.textContent = t('pvp.host.copy');
+      }, 1500);
+    }).catch(() => {});
+  } else {
+    // Fallback: select the code element
+    const range = document.createRange();
+    range.selectNode($('host-code-value'));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  }
 }
 
-async function pvpStartGuest() {
+function pvpStartGuest() {
   switchScreen('screen-pvp-guest');
   window.scrollTo(0, 0);
-  $('pvp-guest-step1').style.display = 'block';
-  $('pvp-guest-step2').style.display = 'none';
+  $('guest-code-input').value = '';
   $('pvp-guest-status').className = 'connection-status';
   $('pvp-guest-status').textContent = '';
+  setTimeout(() => { try { $('guest-code-input').focus(); } catch(e){} }, 100);
 
-  Net.setOnStateChange(handleNetState);
+  Net.setOnStateChange(handleNetStateGuest);
   Net.setOnMessage(handleNetMessage);
 }
 
-function pvpGuestScan() {
-  Scanner.start(async (payload) => {
-    $('pvp-guest-status').className = 'connection-status';
-    $('pvp-guest-status').textContent = t('pvp.connecting');
-    try {
-      const { chunks } = await Net.guestReceiveOfferAndAnswer(payload);
-      $('pvp-guest-step1').style.display = 'none';
-      $('pvp-guest-step2').style.display = 'block';
-      QRDisplay.show('pvp-guest-qr', 'pvp-guest-qr-nav', 'pvp-guest-qr-info', chunks);
-    } catch (e) {
-      console.error('[PvP] guest answer failed', e);
-      $('pvp-guest-status').className = 'connection-status fail';
+async function pvpGuestConnect() {
+  const code = $('guest-code-input').value.trim().toUpperCase();
+  if (code.length !== 6) {
+    $('pvp-guest-status').className = 'connection-status fail';
+    $('pvp-guest-status').textContent = t('pvp.guest.invalid');
+    return;
+  }
+  $('pvp-guest-status').className = 'connection-status';
+  $('pvp-guest-status').innerHTML = '<span class="spinner"></span>' + escapeText(t('pvp.connecting'));
+  try {
+    await Net.guestConnect(code);
+    // success → onStateChange('open') will fire and move to test screen
+  } catch (e) {
+    console.error('[PvP guest] failed', e);
+    $('pvp-guest-status').className = 'connection-status fail';
+    if (e && e.type === 'peer-unavailable') {
+      $('pvp-guest-status').textContent = t('pvp.guest.invalid');
+    } else {
       $('pvp-guest-status').textContent = t('pvp.failed');
     }
-  });
+    Net.close();
+  }
 }
 
-function handleNetState(state) {
-  console.log('[PvP] state →', state);
-  const isHost = Net.getRole() === 'host';
-  const statusEl = isHost ? $('pvp-host-status') : $('pvp-guest-status');
-  if (state === 'open' || state === 'connected') {
-    if (statusEl) {
-      statusEl.className = 'connection-status ok';
-      statusEl.textContent = t('pvp.connected');
+function handleNetStateHost(state) {
+  if (state === 'open') {
+    // A guest is now connected to us
+    moveToTestScreen();
+  } else if (state === 'closed' || state === 'peer-closed') {
+    if ($('screen-pvp-test').classList.contains('active')) {
+      $('pvp-test-status').className = 'connection-status fail';
+      $('pvp-test-status').textContent = t('pvp.disconnected');
     }
-    // Move to test screen after a short delay
-    setTimeout(() => {
-      switchScreen('screen-pvp-test');
-      $('pvp-test-role').textContent = isHost ? 'HOST' : 'GUEST';
-      $('pvp-test-status').className = 'connection-status ok';
-      $('pvp-test-status').textContent = t('pvp.connected');
-      $('pvp-test-log').innerHTML = '';
-    }, 600);
-  } else if (state === 'failed' || state === 'closed' || state === 'disconnected') {
-    if (statusEl) {
-      statusEl.className = 'connection-status fail';
-      statusEl.textContent = state === 'failed' ? t('pvp.failed') : t('pvp.disconnected');
+  } else if (state === 'error' || state === 'peer-error') {
+    const el = $('pvp-host-status');
+    if (el) {
+      el.className = 'connection-status fail';
+      el.textContent = t('pvp.peer.error');
     }
   }
 }
 
+function handleNetStateGuest(state) {
+  if (state === 'open') {
+    moveToTestScreen();
+  } else if (state === 'closed' || state === 'peer-closed') {
+    if ($('screen-pvp-test').classList.contains('active')) {
+      $('pvp-test-status').className = 'connection-status fail';
+      $('pvp-test-status').textContent = t('pvp.disconnected');
+    }
+  } else if (state === 'error' || state === 'peer-error') {
+    const el = $('pvp-guest-status');
+    if (el) {
+      el.className = 'connection-status fail';
+      el.textContent = t('pvp.failed');
+    }
+  }
+}
+
+function moveToTestScreen() {
+  switchScreen('screen-pvp-test');
+  window.scrollTo(0, 0);
+  const isHost = Net.getRole() === 'host';
+  $('pvp-test-role').textContent = isHost ? 'HOST' : 'GUEST';
+  $('pvp-test-status').className = 'connection-status ok';
+  $('pvp-test-status').textContent = t('pvp.connected');
+  $('pvp-test-log').innerHTML = '';
+}
+
 function handleNetMessage(msg) {
-  console.log('[PvP] received', msg);
-  if (msg && msg.type === 'ping') {
+  if (!msg) return;
+  if (msg.type === 'ping') {
     const log = $('pvp-test-log');
     if (log) {
       const line = document.createElement('div');
@@ -2080,7 +1860,10 @@ function handleNetMessage(msg) {
 }
 
 function pvpSendTestPing() {
-  const ok = Net.send({ type: 'ping', text: 'hello from ' + (Net.getRole() || '?') + ' @ ' + new Date().toLocaleTimeString() });
+  const ok = Net.send({
+    type: 'ping',
+    text: 'hello from ' + (Net.getRole() || '?') + ' @ ' + new Date().toLocaleTimeString()
+  });
   if (ok) {
     const log = $('pvp-test-log');
     if (log) {
@@ -2090,6 +1873,14 @@ function pvpSendTestPing() {
       log.appendChild(line);
       log.scrollTop = log.scrollHeight;
     }
+  } else {
+    const log = $('pvp-test-log');
+    if (log) {
+      const line = document.createElement('div');
+      line.style.color = 'var(--red)';
+      line.textContent = '✗ send failed';
+      log.appendChild(line);
+    }
   }
 }
 
@@ -2098,7 +1889,7 @@ function pvpSendTestPing() {
 // ============================================================
 function startGame() {
   if (State.mode === 'remote') {
-    // Save names + config and switch to PvP screen
+    // PvP mode — go to connection screen
     const n1 = $('p1-name').value.trim() || t('p1.default');
     State.players = [{ name: n1, cash: 0 }, { name: '...', cash: 0 }];
     State.config = readConfig();
