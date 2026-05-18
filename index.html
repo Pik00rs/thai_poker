@@ -790,6 +790,26 @@ window.dispatchEvent(new Event('fb-ready'));
 'use strict';
 
 // ============================================================
+// 🔥 FIREBASE CONFIG — EDIT THIS ONCE FOR YOUR DEPLOYMENT
+// ============================================================
+// Replace the values below with your own Firebase project credentials.
+// These keys are PUBLIC by design — safe to commit to git, ship in HTML, etc.
+// Security is enforced by Firebase Realtime Database Rules, not by hiding the key.
+//
+// How to get them:
+//   1. https://console.firebase.google.com → create a project
+//   2. Build → Realtime Database → Create Database (test mode, europe-west1 region)
+//   3. ⚙️ Project Settings → Your apps → </> (Web app) → register
+//   4. Copy databaseURL and apiKey from the firebaseConfig object shown
+//
+// If both values are left empty, users will be prompted to enter their own keys.
+const FIREBASE_BUILTIN_CONFIG = {
+  apiKey:      "",  // ← paste your apiKey here, e.g. "AIzaSy..."
+  databaseURL: ""   // ← paste your databaseURL here, e.g. "https://xxx-default-rtdb.europe-west1.firebasedatabase.app"
+};
+// ============================================================
+
+// ============================================================
 // I18N
 // ============================================================
 const I18N = {
@@ -1603,7 +1623,20 @@ function formatMoney(n) {
 // ============================================================
 const FBConfig = {
   KEY: 'poker_thai_fb_config',
+  // Check if a builtin config is set in FIREBASE_BUILTIN_CONFIG (preferred)
+  hasBuiltin() {
+    return !!(FIREBASE_BUILTIN_CONFIG && FIREBASE_BUILTIN_CONFIG.apiKey && FIREBASE_BUILTIN_CONFIG.databaseURL);
+  },
   load() {
+    // Built-in config always wins
+    if (this.hasBuiltin()) {
+      return {
+        apiKey: FIREBASE_BUILTIN_CONFIG.apiKey,
+        url: FIREBASE_BUILTIN_CONFIG.databaseURL,
+        builtin: true
+      };
+    }
+    // Fall back to user-supplied config in localStorage
     try {
       const s = localStorage.getItem(this.KEY);
       if (!s) return null;
@@ -1863,13 +1896,16 @@ function pvpCancel() {
 
 // Entry point when user chose remote mode and clicked "Start"
 function pvpEnter() {
-  // Check if Firebase config exists; if not, go to config screen
   const cfg = FBConfig.load();
-  if (!cfg) {
-    pvpEditConfig();
-  } else {
+  // If builtin config exists OR user config exists, skip config screen
+  if (cfg) {
     switchScreen('screen-pvp-choose');
     window.scrollTo(0, 0);
+    // Hide "edit config" button if config is built-in (user can't change it anyway)
+    const editBtn = document.querySelector('#screen-pvp-choose button[onclick="pvpEditConfig()"]');
+    if (editBtn) editBtn.style.display = cfg.builtin ? 'none' : 'block';
+  } else {
+    pvpEditConfig();
   }
 }
 
